@@ -17,11 +17,8 @@ setup(
     license="MIT",
     packages=find_packages(),
     install_requires=[
-        "pypdf",
-       "langchain==0.0.173",
-        "paper-qa==1.1.1",
-        "google-search-results",
-        "rmrkl @ git+https://github.com/doncamilom/robust-mrkl.git",
+        "openbabel",
+        "pandas"
     ],
     test_suite="tests",
     long_description=long_description,
