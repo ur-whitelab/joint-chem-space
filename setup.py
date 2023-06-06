@@ -2,18 +2,18 @@ import os
 from glob import glob
 from setuptools import setup, find_packages
 
-exec(open("md-agent/version.py").read())
+exec(open("chem-space/version.py").read())
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="md-agent",
+    name="joint-chem-space",
     version=__version__,
     description="Collection of MD tools for use with language models",
     author="Andrew White",
     author_email="andrew.white@rochester.edu",
-    url="https://github.com/ur-whitelab/md-agent",
+    url="https://github.com/maykcaldas/joint-chem-space",
     license="MIT",
     packages=find_packages(),
     install_requires=[
