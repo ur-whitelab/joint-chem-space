@@ -90,4 +90,5 @@ def download_compounds(start_cid, end_cid):
 
         time.sleep(0.2)
         
+    return [name_response, dsec_response], names, smiless, descriptions
 
