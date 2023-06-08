@@ -80,6 +80,7 @@ def download_compounds(start_cid, end_cid):
     for cid in range(start_cid, end_cid+1):
         name_response, c_name, c_smiles = get_compound_name_and_smiles(cid)
         desc_response, desc = get_compound_description(cid)
+        wait_time = regulate_api_requests([name_response,desc_response])
         if c_name is not None:
             names.append(c_name)
             smiless.append(c_smiles)
@@ -88,7 +89,15 @@ def download_compounds(start_cid, end_cid):
         else:
             print(f"Failed to download compound {cid}")
 
-        time.sleep(0.2)
+        time.sleep(wait_time)
         
     return [name_response, desc_response], names, smiless, descriptions
 
+
+def regulate_api_requests(responses: list) -> float:
+    wait_time = 0.2
+    for response in responses:
+        print(response.headers['X-Throttling-Control'])
+
+
+    return wait_time
