@@ -79,7 +79,7 @@ def download_compounds(start_cid, end_cid):
     descriptions = []
     for cid in range(start_cid, end_cid+1):
         name_response, c_name, c_smiles = get_compound_name_and_smiles(cid)
-        dsec_response, desc = get_compound_description(cid)
+        desc_response, desc = get_compound_description(cid)
         if c_name is not None:
             names.append(c_name)
             smiless.append(c_smiles)
@@ -90,5 +90,5 @@ def download_compounds(start_cid, end_cid):
 
         time.sleep(0.2)
         
-    return [name_response, dsec_response], names, smiless, descriptions
+    return [name_response, desc_response], names, smiless, descriptions
 
