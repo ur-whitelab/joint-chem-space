@@ -44,10 +44,10 @@ def get_compound_name_and_smiles(cid):
         data = response.json()
         try:
             properties = data["PropertyTable"]["Properties"]
-            return properties[0]["IUPACName"], properties[0]["CanonicalSMILES"]
+            return response, properties[0]["IUPACName"], properties[0]["CanonicalSMILES"]
         except:
           print(f'error download data for cid {cid}')
-    return None, None
+    return response, None, None
 
 
 def get_compound_description(cid):
@@ -61,12 +61,12 @@ def get_compound_description(cid):
     if response.status_code == 200:
         data = response.json()
         try:
-            return data['InformationList']["Information"][1]['Description']
+            return response, data['InformationList']["Information"][1]['Description']
         except IndexError:
-            return "No description available."
+            return response, "No description available."
     else:
         print(f"Failed to get description for compound CID: {cid}")
-        return "-"
+        return response, "-"
     
 
 def download_compounds(start_cid, end_cid):
@@ -78,8 +78,8 @@ def download_compounds(start_cid, end_cid):
     smiless = []
     descriptions = []
     for cid in range(start_cid, end_cid+1):
-        c_name, c_smiles = get_compound_name_and_smiles(cid)
-        desc = get_compound_description(cid)
+        name_response, c_name, c_smiles = get_compound_name_and_smiles(cid)
+        dsec_response, desc = get_compound_description(cid)
         if c_name is not None:
             names.append(c_name)
             smiless.append(c_smiles)
@@ -90,4 +90,4 @@ def download_compounds(start_cid, end_cid):
 
         time.sleep(0.2)
         
-    return names, smiless, descriptions
+
