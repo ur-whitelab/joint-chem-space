@@ -3,4 +3,6 @@ pandas
 openbabel
 rdkit
 requests
-time
+ipykernel
+datasets
+seaborn
