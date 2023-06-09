@@ -1,5 +1,7 @@
 import requests
 import time
+from re import search
+from typing import Dict
 
 # def get_compound(cid):
 #     '''
