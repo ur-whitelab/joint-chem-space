@@ -138,7 +138,7 @@ def parse_throttling_headers(throttle_str: str) -> pd.DataFrame:
     # build nested dictionary of status information
     for key, value_set in zip(keys,value_sets):
         status_dict[key] = {
-            'status': search('[a-zA-Z]*', value_set)[0],
+            'status': search('[a-zA-Z]*', value_set)[0].lower(),
             'percent': int(search('\d{1,3}', value_set)[0]),
         }
 
