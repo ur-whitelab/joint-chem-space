@@ -69,15 +69,21 @@ def get_compound_description(cid):
         return "-"
     
 
-def download_compounds(start_cid, end_cid):
+def download_compounds(start_cid = None, end_cid = None, cid_list = None):
     """
     Downloads compounds between the start_cid and end_cid, inclusive.
     Returns the names, smiles, and descriptions of the compounds.
     """
+    if cid_list:
+        pass
+    elif start_cid and end_cid:
+        cid_list = range(start_cid, end_cid+1)
+
     names = []
     smiless = []
     descriptions = []
-    for cid in range(start_cid, end_cid+1):
+    # for cid in range(start_cid, end_cid+1):
+    for cid in cid_list:
         c_name, c_smiles = get_compound_name_and_smiles(cid)
         desc = get_compound_description(cid)
         if c_name is not None:
