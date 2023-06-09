@@ -80,9 +80,18 @@ def download_compounds(start_cid, end_cid):
     smiless = []
     descriptions = []
     for cid in range(start_cid, end_cid+1):
+        # Send request to get compound name and SMILES
         name_response, c_name, c_smiles = get_compound_name_and_smiles(cid)
+        
+        # Determine appropriate wait time before sending next request and wait
+        wait_time = regulate_api_requests(name_response)
+        time.sleep(wait_time)
+        
+        # Send request to get compound description
         desc_response, desc = get_compound_description(cid)
-        wait_time = regulate_api_requests([name_response,desc_response])
+        # Determine appropriate wait time before sending next request
+        wait_time = regulate_api_requests(desc_response)
+        
         if c_name is not None:
             names.append(c_name)
             smiless.append(c_smiles)
@@ -90,16 +99,17 @@ def download_compounds(start_cid, end_cid):
             print(f"Downloaded compound {cid}")
         else:
             print(f"Failed to download compound {cid}")
-
+        
+        # Wait before continuing loop and sending next request
         time.sleep(wait_time)
         
     return [name_response, desc_response], names, smiless, descriptions
 
 
-def regulate_api_requests(responses: list) -> float:
+def regulate_api_requests(response: str) -> float:
     wait_time = 0.2
-    for response in responses:
-        print(response.headers['X-Throttling-Control'])
+    
+    parse_throttling_headers(response.headers['X-Throttling-Control'])
 
     return wait_time
 
@@ -129,5 +139,5 @@ def parse_throttling_headers(throttle_str: str) -> Dict:
             'status': search('[a-zA-Z]*', value_set)[0],
             'percent': int(search('\d{1,3}', value_set)[0]),
         }
-        
+
     return status_dict
