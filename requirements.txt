@@ -3,3 +3,4 @@ rdkit
 requests
 numpy
 pandas
+pytest
