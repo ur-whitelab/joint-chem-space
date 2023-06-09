@@ -108,8 +108,9 @@ def download_compounds(start_cid, end_cid):
     return [name_response, desc_response], names, smiless, descriptions
 
 
-def regulate_api_requests(response: str) -> float:
-    wait_time = 0.2
+def regulate_api_requests(response: str) -> int:
+    # Default wait time that has been in use
+    wait_time = 0
     
     parse_throttling_headers(response.headers['X-Throttling-Control'])
 
