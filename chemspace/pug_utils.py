@@ -99,5 +99,33 @@ def regulate_api_requests(responses: list) -> float:
     for response in responses:
         print(response.headers['X-Throttling-Control'])
 
-
     return wait_time
+
+
+def parse_throttling_headers(throttle_str: str) -> Dict:
+    """
+    Function to parse the API throttling headers into a usable dictionary
+    Args:
+        throttle_str: String of the api response headers related to API throttling Status
+    Returns:
+        status_dict: Dictionary containing information from the headers 
+        in the form of {Status_Type: {'status': <status color>, 'percent_load': <percentage>},...}
+    """
+    # Initialize status dictionary
+    status_dict = {}
+
+    # Split the string of the statuses into parts relating to each status type
+    statuses = throttle_str.split(", ")
+
+    # Split out keys and value sets
+    keys = [status_type.split(' status')[0] for status_type in statuses]
+    value_sets = [status_info.split(' status')[1][2:] for status_info in statuses]
+
+    # build nested dictionary of status information
+    for key, value_set in zip(keys,value_sets):
+        status_dict[key] = {
+            'status': search('[a-zA-Z]*', value_set)[0],
+            'percent': int(search('\d{1,3}', value_set)[0]),
+        }
+        
+    return status_dict
