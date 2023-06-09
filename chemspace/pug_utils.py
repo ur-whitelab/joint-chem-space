@@ -3,6 +3,8 @@ import time
 from re import search
 from typing import Dict
 
+import pandas as pd
+
 # def get_compound(cid):
 #     '''
 #     This code uses the pubchem API to retrieve a compound based on its cid (compound ID). 
@@ -114,13 +116,13 @@ def regulate_api_requests(response: str) -> float:
     return wait_time
 
 
-def parse_throttling_headers(throttle_str: str) -> Dict:
+def parse_throttling_headers(throttle_str: str) -> pd.DataFrame:
     """
     Function to parse the API throttling headers into a usable dictionary
     Args:
         throttle_str: String of the api response headers related to API throttling Status
     Returns:
-        status_dict: Dictionary containing information from the headers 
+        statuses: Dataframe containing information from the headers 
         in the form of {Status_Type: {'status': <status color>, 'percent_load': <percentage>},...}
     """
     # Initialize status dictionary
@@ -140,4 +142,6 @@ def parse_throttling_headers(throttle_str: str) -> Dict:
             'percent': int(search('\d{1,3}', value_set)[0]),
         }
 
-    return status_dict
+    statuses = pd.DataFrame(status_dict).T
+
+    return statuses
