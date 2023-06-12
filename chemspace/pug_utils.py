@@ -105,7 +105,7 @@ def download_compounds(start_cid, end_cid):
         # Wait before continuing loop and sending next request
         time.sleep(wait_time)
         
-    return [name_response, desc_response], names, smiless, descriptions
+    return names, smiless, descriptions
 
 
 def regulate_api_requests(response: str) -> float:
