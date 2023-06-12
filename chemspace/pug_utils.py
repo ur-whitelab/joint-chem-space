@@ -115,15 +115,12 @@ def regulate_api_requests(response: str) -> float:
 
     if (statuses['status'] == 'green').all():
         return wait_time
-
     if (statuses['status'] == 'black').any():
-        pass
+        wait_time = 3600
     elif (statuses['status'] == 'red').any():
-        pass
+        wait_time = 300
     elif (statuses['status'] == 'yellow').any():
-        pass
-
-
+        wait_time = 60
 
     return wait_time
 
