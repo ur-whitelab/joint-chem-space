@@ -81,19 +81,40 @@ def download_compounds(start_cid, end_cid):
     names = []
     smiless = []
     descriptions = []
+    wait_time = 0.2
     for cid in range(start_cid, end_cid+1):
         # Send request to get compound name and SMILES
         name_response, c_name, c_smiles = get_compound_name_and_smiles(cid)
         
         # Determine appropriate wait time before sending next request and wait
         wait_time = regulate_api_requests(name_response)
-        time.sleep(wait_time)
+
+        # Redo last request if it was blocked
+        if wait_time >=3600.0:
+            time.sleep(wait_time)
+            while wait_time >= 3600.0:
+               name_response, c_name, c_smiles = get_compound_name_and_smiles(cid) 
+               wait_time = regulate_api_requests(name_response)
+               time.sleep(wait_time)
+        else:
+            time.sleep(wait_time)
+        
         
         # Send request to get compound description
         desc_response, desc = get_compound_description(cid)
         # Determine appropriate wait time before sending next request
         wait_time = regulate_api_requests(desc_response)
         
+        # Redo last request if it was blocked
+        if wait_time >=3600.0:
+            time.sleep(wait_time)
+            while wait_time >= 3600.0:
+               desc_response, desc = get_compound_description(cid)
+               wait_time = regulate_api_requests(desc_response)
+               time.sleep(wait_time)
+        else:
+            time.sleep(wait_time)
+
         if c_name is not None:
             names.append(c_name)
             smiless.append(c_smiles)
