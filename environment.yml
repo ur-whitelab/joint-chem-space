@@ -1,6 +1,7 @@
 name: chemspace
 channels:
   - conda-forge
+  - pytorch
   - defaults
 dependencies:
   - python=3.11
@@ -12,5 +13,10 @@ dependencies:
   - pytest
   - ipykernel
   - datasets
+<<<<<<< HEAD
   - transformers
   
+=======
+  - seaborn
+  - pytorch
+>>>>>>> 0f74da9 (First implementation of the projectors)
