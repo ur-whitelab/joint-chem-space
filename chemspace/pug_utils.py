@@ -109,6 +109,14 @@ def download_compounds(start_cid, end_cid):
 
 
 def regulate_api_requests(response: str) -> float:
+    """
+    Function to adjust time in between API requests to avoid having our requests blocked by PubChem
+    Args:
+        response: API response
+    Returns:
+        wait_time: time to wait before sending next request
+    """
+
     statuses = parse_throttling_headers(response.headers['X-Throttling-Control'])
 
     if (statuses['status'] == 'green').all():
