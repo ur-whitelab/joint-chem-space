@@ -7,13 +7,6 @@ from requests.models import Response
 from chemspace.pug_utils import regulate_api_requests
 
 class TestPUGUtils:
-    def test_dummy_test(self):
-        """
-        Placeholder test to initialize test suite
-        Can be deleted when we have actual tests
-        """
-        assert True
-
     @pytest.mark.parametrize("headers,wait_time",[
         ("Request Count status: Green (0%), Request Time status: Green (0%), Service status: Green (20%)", 0.2),
         ("Request Count status: Green (0%), Request Time status: Green (0%), Service status: Black (99%)", 3600.0),
@@ -31,4 +24,3 @@ class TestPUGUtils:
 
         # Ensure it matches what is expected
         assert test_wait_time == wait_time
-        
