@@ -109,12 +109,10 @@ def download_compounds(start_cid, end_cid):
 
 
 def regulate_api_requests(response: str) -> float:
-    wait_time = 0.2
-    
     statuses = parse_throttling_headers(response.headers['X-Throttling-Control'])
 
     if (statuses['status'] == 'green').all():
-        return wait_time
+        wait_time = 0.2
     if (statuses['status'] == 'black').any():
         wait_time = 3600.0
     elif (statuses['status'] == 'red').any():
