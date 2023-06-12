@@ -117,8 +117,10 @@ def regulate_api_requests(response: str) -> float:
         wait_time: time to wait before sending next request
     """
 
+    # Get throttling statuses as a dataframe
     statuses = parse_throttling_headers(response.headers['X-Throttling-Control'])
 
+    # Set wait time according to status
     if (statuses['status'] == 'green').all():
         wait_time = 0.2
     if (statuses['status'] == 'black').any():
