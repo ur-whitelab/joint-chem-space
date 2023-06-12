@@ -12,7 +12,14 @@ class TestPUGUtils:
         ("Request Count status: Green (0%), Request Time status: Green (0%), Service status: Black (99%)", 3600.0),
         ("Request Count status: Green (0%), Request Time status: Red (80%), Service status: Green (20%)", 60.0),
         ("Request Count status: Yellow (40%), Request Time status: Green (0%), Service status: Green (20%)", 1.0),
-        ])
+        ],
+        ids = [
+            "Green",
+            "Black",
+            "Red",
+            "Yellow",
+        ]
+        )
     def test_rest_regulation(self, headers, wait_time):
         # Build mock response
         response = Response()
