@@ -1,6 +1,7 @@
 name: chemspace
 channels:
   - conda-forge
+  - pytorch
   - defaults
 dependencies:
   - python=3.11
