@@ -4,3 +4,6 @@ requests
 numpy
 pandas
 pytest
+ipykernel
+datasets
+seaborn
