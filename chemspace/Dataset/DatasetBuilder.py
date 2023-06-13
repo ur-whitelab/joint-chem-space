@@ -31,7 +31,7 @@ class DatasetBuilder:
                 self.dataset = pd.read_csv(compound_file_path, index_col='Unnamed: 0')
                 return
         # If dataframe passed in, assign to self.dataset
-        elif compound_df:
+        elif compound_df is not None:
             self.dataset = compound_df
             return
         
