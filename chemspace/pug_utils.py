@@ -1,44 +1,23 @@
 import requests
 import time
+from typing import Tuple, List, Dict
 from re import search
-from typing import Dict
-
 import pandas as pd
 
-# def get_compound(cid):
-#     '''
-#     This code uses the pubchem API to retrieve a compound based on its cid (compound ID). 
-#     The cid is used to make a request to the pubchem API and retrieve the compound information in JSON format.
-#     '''    
-#     base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
-#     compound_url = f"{base_url}/compound/cid/{cid}/smiles/JSON"
-#     response = requests.get(compound_url)
-    
-#     if response.status_code == 200:
-#         return response.json()
-#     else:
-#         return None
 
-
-# def get_compound_by_name(compound_name):
-#     '''
-#     This code takes a compound name from the user and
-#     retrieves the compound from PubChem.
-#     '''
-#     base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
-#     compound_url = f"{base_url}/compound/name/{compound_name}/JSON"
-#     response = requests.get(compound_url)
-
-#     if response.status_code == 200:
-#         return response.json()
-#     else:
-#         print(f"Failed to get compound: {compound_name}")
-#         return None
-
-
-def get_compound_name_and_smiles(cid):
+def get_compound_name_and_smiles(
+        cid: int
+    ) -> Tuple[str, str]:
     '''
-    This function takes a compound id and returns the IUPAC name and SMILES string for that compound
+    This function takes a PubChem compound ID and returns the IUPAC name and 
+    SMILES string for that compound.
+
+    Args:
+        cid (int): PubChem compound ID
+
+    Returns:
+        tuple: Contains the IUPAC name and SMILES string of the compound. 
+               If the compound cannot be found, return (None, None).
     '''
     base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
     compound_url = f"{base_url}/compound/cid/{cid}/property/IUPACName,CanonicalSMILES/JSON"
@@ -50,13 +29,22 @@ def get_compound_name_and_smiles(cid):
             properties = data["PropertyTable"]["Properties"]
             return response, properties[0]["IUPACName"], properties[0]["CanonicalSMILES"]
         except:
-          print(f'error download data for cid {cid}')
+          print(f'Error in downloading data for CID: {cid}')
     return response, None, None
 
 
-def get_compound_description(cid):
+def get_compound_description(
+        cid: int
+    ) -> str:
     """
-    Get compound description from PubChem
+    Get compound description from PubChem.
+
+    Args:
+        cid (int): PubChem compound ID
+
+    Returns:
+        str: A description of the compound. If the compound doesn't have a 
+             description or cannot be found, it returns appropriate messages.
     """
     base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
     description_url = f"{base_url}/compound/cid/{cid}/description/JSON"
@@ -71,12 +59,25 @@ def get_compound_description(cid):
     else:
         print(f"Failed to get description for compound CID: {cid}")
         return response, "-"
-    
 
-def download_compounds(start_cid, end_cid):
+
+def download_compounds(
+        start_cid: int,
+        end_cid: int
+    ) -> Tuple[List[str], List[str], List[str]]:
     """
-    Downloads compounds between the start_cid and end_cid, inclusive.
-    Returns the names, smiles, and descriptions of the compounds.
+    Downloads compound data between the start_cid and end_cid, inclusive.
+    Returns the names, SMILES strings, and descriptions of the compounds.
+
+    Args:
+        start_cid (int): The starting compound ID in the range.
+        end_cid (int): The ending compound ID in the range.
+
+    Returns:
+        tuple: Contains three lists:
+            names (List[str]): A list of compound names.
+            smiless (List[str]): A list of SMILES strings of the compounds.
+            descriptions (List[str]): A list of descriptions of the compounds.
     """
     names = []
     smiless = []
