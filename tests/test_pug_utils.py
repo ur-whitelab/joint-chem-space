@@ -1,9 +1,9 @@
 import sys
 sys.path.append(".")
+import chemspace as cs
 
 import pytest
 from requests.models import Response
-
 from chemspace.pug_utils import regulate_api_requests
 
 class TestPUGUtils:
@@ -13,7 +13,7 @@ class TestPUGUtils:
         It should return a Tuple[str, str] with the name and the SMILES of the requested molecule.
         """
         cid = 702
-        name, smiles = cs.get_compound_name_and_smiles(cid)
+        response, name, smiles = cs.get_compound_name_and_smiles(cid)
         assert isinstance(name, str)
         assert isinstance(smiles, str)
         assert name.lower() == "ethanol"
@@ -26,7 +26,7 @@ class TestPUGUtils:
         This test only tests if it's returning a string to garantee the function is correctly returning.
         """
         cid = 702
-        description = cs.get_compound_description(cid)
+        response, description = cs.get_compound_description(cid)
         assert isinstance(description, str)
 
     def test_download_compound(self):
