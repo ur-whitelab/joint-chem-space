@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 
 import pandas as pd
-from math import max
+import max
 
 def rmse(zi, zj):
   return torch.sqrt(torch.mean((zi-zj)**2))
