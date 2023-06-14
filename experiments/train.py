@@ -6,7 +6,7 @@ from chemspace import ProjConfig, Projector, Encoder, loss_function
 import torch
 from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
-
+from torch.nn import TripletMarginLoss
 import pandas as pd
 
 def rmse(zi, zj):
@@ -67,7 +67,9 @@ def train(dataset: Dataset,
           E_desc: Encoder = None,
           P_desc: Projector = None, # Add encoders/projectors as a list? Addapt the loss to receive n encoders/projectors?
           ) -> None:
+  loss_fxn = TripletMarginLoss(margin=0)
   for i in range(1, num_epochs+1):
+
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     for batch in dataloader:
       
@@ -75,7 +77,8 @@ def train(dataset: Dataset,
       z_sml = P_sml(E_sml(x_sml).to(device))
       z_desc = P_desc(E_desc(x_desc).to(device))
 
-      loss = triplet_loss_function(z_sml, z_desc, torch.randn(256))
+      loss = loss_fxn(z_sml, z_desc, torch.randn(z_sml.shape))
+      
 
       optimizer.zero_grad()
       loss.backward()
