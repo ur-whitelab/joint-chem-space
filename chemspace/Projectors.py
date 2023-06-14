@@ -5,9 +5,9 @@ from dataclasses import dataclass
 
 @dataclass
 class ProjConfig:
-  input_size  : int         = 32
-  hidden_size : int         = 16
-  output_size : int         = 32
+  input_size  : int         = 384
+  hidden_size : int         = 256
+  output_size : int         = 256
   activation_function : str = "relu"
 
 
