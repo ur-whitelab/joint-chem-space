@@ -24,7 +24,7 @@ def triplet_loss_function(zA, zP, zN):
       """
       Return distance between two vectors
       """
-      return (x-y) ** 2
+      return ((x-y) ** 2).sum() ** 0.5
    
   alpha = 0
   return max((distance(zA, zP) - distance(zA, zN) + alpha),0)
