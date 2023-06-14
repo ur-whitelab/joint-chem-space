@@ -12,6 +12,12 @@ import pandas as pd
 def rmse(zi, zj):
   return torch.sqrt(torch.mean((zi-zj)**2))
 
+def distance(x, y):
+    """
+    Return distance between two vectors
+    """
+    return ((x-y) ** 2).sum() ** 0.5
+
 def triplet_loss_function(zA, zP, zN):
   """
   Implement triplet loss function
@@ -20,20 +26,13 @@ def triplet_loss_function(zA, zP, zN):
     zP: positive comparison vector, same as anchor
     zN: negative comparison vector, different from anchor
   """
-  def distance(x, y):
-      """
-      Return distance between two vectors
-      """
-      return ((x-y) ** 2).sum() ** 0.5
-   
-  alpha = 0
-  distances_term = (distance(zA, zP) - distance(zA, zN) + alpha)
-  return max(distances_term, torch.zeros_like(distances_term))
+  alpha = 0.0
+  return (distance(zA, zP) - distance(zA, zN) + alpha)
 
 # Create a dummy dataset
 class DummyDataset(Dataset):
     def __init__(self,
-                 num_samples: int = 100
+                 num_samples: int = 400
                 ):
         self.num_samples = num_samples
         self.data = list(zip(
@@ -51,7 +50,7 @@ class PubChemDataset(Dataset):
     def __init__(self, 
                  path: str
                 ) -> None:
-      self.data = pd.read_csv(path)
+      self.data = pd.read_csv(path)[:20]
 
     def __getitem__(self, index) -> tuple[str, str]:
       return (self.data["SMILES"][index], self.data["Description"][index])
@@ -60,7 +59,7 @@ class PubChemDataset(Dataset):
       return len(self.data)
 
 def train(dataset: Dataset,
-          num_epochs: int = 5,
+          num_epochs: int = 50,
           batch_size: int = 32,
           optimizer: optim = None,
           E_sml: Encoder = None,
@@ -68,63 +67,63 @@ def train(dataset: Dataset,
           E_desc: Encoder = None,
           P_desc: Projector = None, # Add encoders/projectors as a list? Addapt the loss to receive n encoders/projectors?
           ) -> None:
-  loss_fxn = TripletMarginLoss(margin=0)
+  loss_fxn = torch.nn.TripletMarginLoss(margin=1)
   for i in range(1, num_epochs+1):
 
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     for batch in dataloader:
-      
-      x_sml, x_desc = batch[0], batch[1]
-      z_sml = P_sml(E_sml(x_sml).to(device))
-      z_desc = P_desc(E_desc(x_desc).to(device))
+        x_sml, x_desc = batch[0], batch[1]
+        z_sml = P_sml(E_sml(x_sml).to(device))
+        z_desc = P_desc(E_desc(x_desc).to(device))
+        # z_sml = P_sml(x_sml.to(device))
+        # z_desc = P_desc(x_desc.to(device))
 
-      loss = loss_fxn(z_sml, z_desc, torch.randn(z_sml.shape))
-      
+        loss = loss_fxn(z_sml, z_desc, z_desc.roll(3, 0))
 
-      optimizer.zero_grad()
-      loss.backward()
-      optimizer.step()
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        # Same entity
+        k = 0
+        z1 = P_sml(E_sml(dataset[k][0]))
+        z2 = P_desc(E_desc(dataset[k][1]))
+        print(f"\tdistance for the same entry: {distance(z1,z2)}")
+        # different entity
+        z1 = P_sml(E_sml(dataset[k][0]))
+        z2 = P_desc(E_desc(dataset[k+5][1]))
+        print(f"\tdistance for different entries: {distance(z1,z2)}")
+
     
     if not i%1:
-      print (f'Epoch: {i} == Loss: {loss.item():.4f}')
+        print (f'Epoch: {i} == Loss: {loss.item():.4f}')
 
 if __name__ == "__main__":
-  # Create two dummy projectores
-  P_sml_config = ProjConfig(input_size=384)
-  P_sml = Projector(**vars(P_sml_config))
-  E_sml = Encoder()
+    # Create two dummy projectores
+    P_sml_config = ProjConfig(input_size=384)
+    P_sml = Projector(**vars(P_sml_config))
+    E_sml = Encoder()
 
-  P_desc_config = ProjConfig(input_size=384)
-  P_desc = Projector(**vars(P_desc_config))
-  E_desc = Encoder()
+    P_desc_config = ProjConfig(input_size=384)
+    P_desc = Projector(**vars(P_desc_config))
+    E_desc = Encoder()
 
-  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-  # dataset = DummyDataset()
-  dataset = PubChemDataset(path="../chemspace/Dataset/Data/PubChem.csv")
+#   dataset = DummyDataset()
+    dataset = PubChemDataset(path="../chemspace/Dataset/Data/PubChem.csv")
 
   #Quick test
   # Same entity
-  k = 0
-  z1 = P_sml(E_sml(dataset[k][0]))
-  z2 = P_desc(E_desc(dataset[k][1]))
-  print(f" RMSE for the same entry: {rmse(z1,z2)}")
-  # different entity
-  z1 = P_sml(E_sml(dataset[k][0]))
-  z2 = P_desc(E_desc(dataset[k+88][1]))
-  print(f" RMSE for different entries: {rmse(z1,z2)}")
+    k = 0
+    z1 = P_sml(E_sml(dataset[k][0]))
+    z2 = P_desc(E_desc(dataset[k][1]))
+    print(f" distance for the same entry: {distance(z1,z2)}")
+    # different entity
+    z1 = P_sml(E_sml(dataset[k][0]))
+    z2 = P_desc(E_desc(dataset[k+5][1]))
+    print(f" distance for different entries: {distance(z1,z2)}")
 
   # Start training
-  optimizer = optim.Adam(list(P_sml.parameters()) + list(P_desc.parameters()), lr=0.001)
-  train(dataset, optimizer=optimizer, E_sml=E_sml, P_sml=P_sml, E_desc=E_desc, P_desc=P_desc)
-
-# Same entity
-k = 0
-z1 = P_sml(E_sml(dataset[k][0]))
-z2 = P_desc(E_desc(dataset[k][1]))
-print(f" RMSE for the same entry: {rmse(z1,z2)}")
-
-# different entity
-z1 = P_sml(E_sml(dataset[k][0]))
-z2 = P_desc(E_desc(dataset[k+88][1]))
-print(f" RMSE for different entries: {rmse(z1,z2)}")
+    optimizer = optim.Adam(list(P_sml.parameters()) + list(P_desc.parameters()), lr=0.005)
+    train(dataset, optimizer=optimizer, E_sml=E_sml, P_sml=P_sml, E_desc=E_desc, P_desc=P_desc)
