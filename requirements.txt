@@ -7,3 +7,4 @@ pytest
 ipykernel
 datasets
 transformers
+pytorch

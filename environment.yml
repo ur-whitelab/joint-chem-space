@@ -13,16 +13,6 @@ dependencies:
   - pytest
   - ipykernel
   - datasets
-<<<<<<< HEAD
-<<<<<<< HEAD
-  - transformers
-  
-=======
-  - seaborn
-  - pytorch
->>>>>>> 0f74da9 (First implementation of the projectors)
-=======
   - transformers
   - pytorch
   
->>>>>>> c6abd7d (updated requirements: inlcuded transformers)
