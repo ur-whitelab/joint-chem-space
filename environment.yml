@@ -12,5 +12,5 @@ dependencies:
   - pytest
   - ipykernel
   - datasets
-  - seaborn
+  - transformers
   
