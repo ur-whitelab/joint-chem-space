@@ -11,11 +11,11 @@ from chemspace.Dataset.DatasetBuilder import DatasetBuilder
 
 @pytest.fixture
 def pubchem_compund_report_path():
-    return './chemspace/Dataset/Data/PubChem_compound_list_records.json.gz'
+    return os.path.abspath('./chemspace/Dataset/Data/PubChem_compound_list_records.json.gz')
 
 @pytest.fixture
 def dataset_CSV_path():
-    return './chemspace/Dataset/Data/CompoundDataset.csv'
+    return os.path.abspath('./chemspace/Dataset/Data/CompoundDataset.csv')
 
 class TestDatasetBuilder:
     
@@ -24,9 +24,8 @@ class TestDatasetBuilder:
         """
         Tests to cover instantiating a DatasetBuilder object from a zipped JSON file or a CSV
         """
-        # Get the absolute path to the file and create DatasetBuilder instance
+        # Get the path to the file and create DatasetBuilder instance
         compound_file_path = request.getfixturevalue(compound_file_path)
-        compound_file_path = os.path.abspath(compound_file_path)
         DB = DatasetBuilder(compound_file_path=compound_file_path)
 
         # Check that indexed dataframe was created
