@@ -6,5 +6,9 @@ pandas
 pytest
 ipykernel
 datasets
+<<<<<<< HEAD
 transformers
 pytorch
+=======
+transformers
+>>>>>>> ad9c930 (updated requirements: inlcuded transformers)
