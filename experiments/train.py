@@ -27,7 +27,8 @@ def triplet_loss_function(zA, zP, zN):
       return ((x-y) ** 2).sum() ** 0.5
    
   alpha = 0
-  return max((distance(zA, zP) - distance(zA, zN) + alpha),0)
+  distances_term = (distance(zA, zP) - distance(zA, zN) + alpha)
+  return max(distances_term, torch.zeros_like(distances_term))
 
 # Create a dummy dataset
 class DummyDataset(Dataset):
