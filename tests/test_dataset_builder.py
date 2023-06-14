@@ -17,6 +17,10 @@ def pubchem_compund_report_path():
 def dataset_CSV_path():
     return os.path.abspath('./chemspace/Dataset/Data/CompoundDataset.csv')
 
+@pytest.fixture
+def CID_df(dataset_CSV_path):
+    return pd.read_csv(dataset_CSV_path, index_col='Unnamed: 0')
+
 class TestDatasetBuilder:
     
     @pytest.mark.parametrize('compound_file_path',['pubchem_compund_report_path', 'dataset_CSV_path'])
@@ -30,3 +34,14 @@ class TestDatasetBuilder:
 
         # Check that indexed dataframe was created
         assert not DB.dataset.index.empty
+
+    def test_instantiate_DB_from_DF(self, CID_df):
+        """
+        Tests to cover instantiating a DatasetBuilder object from a dataframe
+        """
+        # Create Dataset Builder instance
+        DB = DatasetBuilder(compound_df=CID_df)
+        
+        # Check that indexed dataframe was used for the instance dataset
+        assert not DB.dataset.index.empty
+
