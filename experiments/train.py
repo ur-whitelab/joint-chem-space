@@ -8,10 +8,27 @@ from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 
 import pandas as pd
+from math import max
 
 def rmse(zi, zj):
   return torch.sqrt(torch.mean((zi-zj)**2))
 
+def triplet_loss_function(zA, zP, zN):
+  """
+  Implement triplet loss function
+  Args:
+    zA: anchor vector
+    zP: positive comparison vector, same as anchor
+    zN: negative comparison vector, different from anchor
+  """
+  def distance(x, y):
+      """
+      Return distance between two vectors
+      """
+      return (x-y) ** 2
+   
+  alpha = 0
+  return max((distance(zA, zP) - distance(zA, zN) + alpha),0)
 
 # Create a dummy dataset
 class DummyDataset(Dataset):
