@@ -75,7 +75,7 @@ def train(dataset: Dataset,
       z_sml = P_sml(E_sml(x_sml).to(device))
       z_desc = P_desc(E_desc(x_desc).to(device))
 
-      loss = loss_function(z_sml, z_desc)
+      loss = triplet_loss_function(z_sml, z_desc, torch.randn(256))
 
       optimizer.zero_grad()
       loss.backward()
