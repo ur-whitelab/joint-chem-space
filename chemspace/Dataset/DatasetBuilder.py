@@ -10,6 +10,14 @@ class DatasetBuilder:
         compound_file_path: str = None,
         compound_df: pd.DataFrame = None,
         ):
+        """
+        Instantiate a DatasetBuilder instance, 
+        begin the construction of a dataset by creating a dataframe with the CIDs as indices
+        
+        Args:
+            compound_file_path: Optional. Path to a Chemical Structure Records compressed .JSON file downloaded from a PubChem Query
+            compund_df: Optional. A dataframe with CIDs as the indices
+        """
         # Initialize list to hold CIDs
         self.CIDs = []
 
