@@ -23,6 +23,7 @@ def CID_df(dataset_CSV_path):
 
 class TestDatasetBuilder:
     
+    @pytest.mark.zipped_files
     @pytest.mark.parametrize('compound_file_path',['pubchem_compund_report_path', 'dataset_CSV_path'])
     def test_instantiate_DB_from_file(self, compound_file_path, request):
         """
