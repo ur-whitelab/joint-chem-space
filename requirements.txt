@@ -1,6 +1,9 @@
-numpy
-pandas
 openbabel
 rdkit
 requests
-time
+numpy
+pandas
+pytest
+ipykernel
+datasets
+seaborn

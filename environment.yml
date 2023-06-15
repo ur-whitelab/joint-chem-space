@@ -1,0 +1,16 @@
+name: chemspace
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - openbabel
+  - rdkit
+  - requests
+  - numpy
+  - pandas
+  - pytest
+  - ipykernel
+  - datasets
+  - seaborn
+  

@@ -1,40 +1,23 @@
 import requests
 import time
-
-# def get_compound(cid):
-#     '''
-#     This code uses the pubchem API to retrieve a compound based on its cid (compound ID). 
-#     The cid is used to make a request to the pubchem API and retrieve the compound information in JSON format.
-#     '''    
-#     base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
-#     compound_url = f"{base_url}/compound/cid/{cid}/smiles/JSON"
-#     response = requests.get(compound_url)
-    
-#     if response.status_code == 200:
-#         return response.json()
-#     else:
-#         return None
+from typing import Tuple, List, Dict
+from re import search
+import pandas as pd
 
 
-# def get_compound_by_name(compound_name):
-#     '''
-#     This code takes a compound name from the user and
-#     retrieves the compound from PubChem.
-#     '''
-#     base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
-#     compound_url = f"{base_url}/compound/name/{compound_name}/JSON"
-#     response = requests.get(compound_url)
-
-#     if response.status_code == 200:
-#         return response.json()
-#     else:
-#         print(f"Failed to get compound: {compound_name}")
-#         return None
-
-
-def get_compound_name_and_smiles(cid):
+def get_compound_name_and_smiles(
+        cid: int
+    ) -> Tuple[str, str]:
     '''
-    This function takes a compound id and returns the IUPAC name and SMILES string for that compound
+    This function takes a PubChem compound ID and returns the IUPAC name and 
+    SMILES string for that compound.
+
+    Args:
+        cid (int): PubChem compound ID
+
+    Returns:
+        tuple: Contains the IUPAC name and SMILES string of the compound. 
+               If the compound cannot be found, return (None, None).
     '''
     base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
     compound_url = f"{base_url}/compound/cid/{cid}/property/IUPACName,CanonicalSMILES/JSON"
@@ -44,15 +27,24 @@ def get_compound_name_and_smiles(cid):
         data = response.json()
         try:
             properties = data["PropertyTable"]["Properties"]
-            return properties[0]["IUPACName"], properties[0]["CanonicalSMILES"]
+            return response, properties[0]["IUPACName"], properties[0]["CanonicalSMILES"]
         except:
-          print(f'error download data for cid {cid}')
-    return None, None
+          print(f'Error in downloading data for CID: {cid}')
+    return response, None, None
 
 
-def get_compound_description(cid):
+def get_compound_description(
+        cid: int
+    ) -> str:
     """
-    Get compound description from PubChem
+    Get compound description from PubChem.
+
+    Args:
+        cid (int): PubChem compound ID
+
+    Returns:
+        str: A description of the compound. If the compound doesn't have a 
+             description or cannot be found, it returns appropriate messages.
     """
     base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug"
     description_url = f"{base_url}/compound/cid/{cid}/description/JSON"
@@ -61,18 +53,32 @@ def get_compound_description(cid):
     if response.status_code == 200:
         data = response.json()
         try:
-            return data['InformationList']["Information"][1]['Description']
+            return response, data['InformationList']["Information"][1]['Description']
         except IndexError:
-            return "No description available."
+            return response, "No description available."
     else:
         print(f"Failed to get description for compound CID: {cid}")
-        return "-"
-    
+        return response, "-"
 
-def download_compounds(start_cid = None, end_cid = None, cid_list = None):
+
+def download_compounds(
+        start_cid: int = None,
+        end_cid: int = None,
+        cid_list: List = None,
+    ) -> Tuple[List[str], List[str], List[str]]:
     """
-    Downloads compounds between the start_cid and end_cid, inclusive.
-    Returns the names, smiles, and descriptions of the compounds.
+    Downloads compound data between the start_cid and end_cid, inclusive.
+    Returns the names, SMILES strings, and descriptions of the compounds.
+
+    Args:
+        start_cid (int): The starting compound ID in the range.
+        end_cid (int): The ending compound ID in the range.
+
+    Returns:
+        tuple: Contains three lists:
+            names (List[str]): A list of compound names.
+            smiless (List[str]): A list of SMILES strings of the compounds.
+            descriptions (List[str]): A list of descriptions of the compounds.
     """
     if cid_list:
         pass
@@ -82,10 +88,40 @@ def download_compounds(start_cid = None, end_cid = None, cid_list = None):
     names = []
     smiless = []
     descriptions = []
-    # for cid in range(start_cid, end_cid+1):
+    wait_time = 0.2
     for cid in cid_list:
-        c_name, c_smiles = get_compound_name_and_smiles(cid)
-        desc = get_compound_description(cid)
+        # Send request to get compound name and SMILES
+        name_response, c_name, c_smiles = get_compound_name_and_smiles(cid)
+        
+        # Determine appropriate wait time before sending next request and wait
+        wait_time = regulate_api_requests(name_response)
+
+        # Redo last request if it was blocked
+        if wait_time >=3600.0:
+            time.sleep(wait_time)
+            while wait_time >= 3600.0:
+               name_response, c_name, c_smiles = get_compound_name_and_smiles(cid) 
+               wait_time = regulate_api_requests(name_response)
+               time.sleep(wait_time)
+        else:
+            time.sleep(wait_time)
+        
+        
+        # Send request to get compound description
+        desc_response, desc = get_compound_description(cid)
+        # Determine appropriate wait time before sending next request
+        wait_time = regulate_api_requests(desc_response)
+        
+        # Redo last request if it was blocked
+        if wait_time >=3600.0:
+            time.sleep(wait_time)
+            while wait_time >= 3600.0:
+               desc_response, desc = get_compound_description(cid)
+               wait_time = regulate_api_requests(desc_response)
+               time.sleep(wait_time)
+        else:
+            time.sleep(wait_time)
+
         if c_name is not None:
             names.append(c_name)
             smiless.append(c_smiles)
@@ -93,7 +129,64 @@ def download_compounds(start_cid = None, end_cid = None, cid_list = None):
             print(f"Downloaded compound {cid}")
         else:
             print(f"Failed to download compound {cid}")
-
-        time.sleep(0.2)
+        
+        # Wait before continuing loop and sending next request
+        time.sleep(wait_time)
         
     return names, smiless, descriptions
+
+
+def regulate_api_requests(response: str) -> float:
+    """
+    Function to adjust time in between API requests to avoid having our requests blocked by PubChem
+    Args:
+        response: API response
+    Returns:
+        wait_time: time to wait before sending next request
+    """
+
+    # Get throttling statuses as a dataframe
+    statuses = parse_throttling_headers(response.headers['X-Throttling-Control'])
+
+    # Set wait time according to status
+    if (statuses['status'] == 'green').all():
+        wait_time = 0.2
+    if (statuses['status'] == 'black').any():
+        wait_time = 3600.0
+    elif (statuses['status'] == 'red').any():
+        wait_time = 60.0
+    elif (statuses['status'] == 'yellow').any():
+        wait_time = 1.0
+
+    return wait_time
+
+
+def parse_throttling_headers(throttle_str: str) -> pd.DataFrame:
+    """
+    Function to parse the API throttling headers into a usable dictionary
+    Args:
+        throttle_str: String of the api response headers related to API throttling Status
+    Returns:
+        statuses: Dataframe containing information from the headers 
+        in the form of {Status_Type: {'status': <status color>, 'percent_load': <percentage>},...}
+    """
+    # Initialize status dictionary
+    status_dict = {}
+
+    # Split the string of the statuses into parts relating to each status type
+    statuses = throttle_str.split(", ")
+
+    # Split out keys and value sets
+    keys = [status_type.split(' status')[0] for status_type in statuses]
+    value_sets = [status_info.split(' status')[1][2:] for status_info in statuses]
+
+    # build nested dictionary of status information
+    for key, value_set in zip(keys,value_sets):
+        status_dict[key] = {
+            'status': search('[a-zA-Z]*', value_set)[0].lower(),
+            'percent': int(search('\d{1,3}', value_set)[0]),
+        }
+
+    statuses = pd.DataFrame(status_dict).T
+
+    return statuses
