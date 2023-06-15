@@ -34,7 +34,9 @@ class TestDatasetBuilder:
         DB = DatasetBuilder(compound_file_path=compound_file_path)
 
         # Check that indexed dataframe was created
-        assert not DB.dataset.index.empty
+        assert not DB.CIDs.index.empty
+        # Check number of CIDs imported
+        assert len(DB.CIDs) > 250,000
 
     def test_instantiate_DB_from_DF(self, CID_df):
         """
@@ -44,5 +46,7 @@ class TestDatasetBuilder:
         DB = DatasetBuilder(compound_df=CID_df)
         
         # Check that indexed dataframe was used for the instance dataset
-        assert not DB.dataset.index.empty
+        assert not DB.CIDs.empty
+        # Check Number of CIDs imported
+        assert len(DB.CIDs) > 250,000
 
