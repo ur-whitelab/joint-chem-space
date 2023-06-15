@@ -47,19 +47,17 @@ class DatasetBuilder:
         
     def add_SMILES(self, data_path: str = '../chemspace/Dataset/Data/CID-SMILES.gz'):
         data_reader = pd.read_csv(data_path, chunksize= 10 ** 6, sep= "\t", names = ['CID', 'SMILES'], index_col = 'CID')
-        i = 0
+        i = 0 
+        self.dataset = pd.DataFrame()
+
         for df in data_reader:
             if i % 5 == 0:
                 print(i)
 
-            #print(df)
             if df.index[0] > self.CIDs.index[-1]:
                 return
             elif self._external_CIDs_in_dataset(df.index):
-                try:
-                    self.dataset = pd.concat([self.dataset, self.CIDs.merge(df, how='left', left_index = True, right_index=True, suffixes= (None,'_y'))], axis = 0)
-                except(pd.errors.MergeError):
-                    print(df)
+                self.dataset = pd.concat([self.dataset, self.CIDs.merge(df, how='inner', left_index = True, right_index=True, suffixes= (None,'_y'))], axis = 0)
             i = i + 1
         return
     
