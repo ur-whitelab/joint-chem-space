@@ -15,7 +15,7 @@ def pubchem_compund_report_path():
 
 @pytest.fixture
 def dataset_CSV_path():
-    return os.path.abspath('./chemspace/Dataset/Data/CompoundDataset.csv')
+    return os.path.abspath('./chemspace/Dataset/Data/CIDs.csv')
 
 @pytest.fixture
 def CID_df(dataset_CSV_path):
