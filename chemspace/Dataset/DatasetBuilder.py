@@ -46,18 +46,26 @@ class DatasetBuilder:
             return
         
     def add_SMILES(self, data_path: str = '../chemspace/Dataset/Data/CID-SMILES.gz'):
+        # create object to iterate through CSV chunks
         data_reader = pd.read_csv(data_path, chunksize= 10 ** 6, sep= "\t", names = ['CID', 'SMILES'], index_col = 'CID')
-        i = 0 
-        self.dataset = pd.DataFrame()
+        
+        # Initialize counter and 
+        i = 0
 
+        # Iterate through df chunks
         for df in data_reader:
+            # Display progress
             if i % 5 == 0:
                 print(i)
 
+            # if the lowest CID of the chunk is greater than the largest CID we're interested in, then stop
             if df.index[0] > self.CIDs.index[-1]:
                 return
+            # Otherwise, merge the CIDs and SMILES chunk dataframes, and concat. Store as dataset
             elif self._external_CIDs_in_dataset(df.index):
                 self.dataset = pd.concat([self.dataset, self.CIDs.merge(df, how='inner', left_index = True, right_index=True, suffixes= (None,'_y'))], axis = 0)
+            
+            # Advance counter
             i = i + 1
         return
     
