@@ -44,4 +44,11 @@ class DatasetBuilder:
             self.dataset = compound_df
             self.CIDs = compound_df.index
             return
-        
+    def add_SMILES(self, data_path: str = '../chemspace/Dataset/Data/CID-SMILES.gz'):
+        data_reader = pd.read_csv(data_path, chunksize= 10 ** 6, sep= "\t", names = ['CID', 'SMILES'], index_col = 'CID')
+
+        for df in data_reader:
+            print(df)
+
+        return
+    
