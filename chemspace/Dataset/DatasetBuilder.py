@@ -31,13 +31,13 @@ class DatasetBuilder:
                         except(json.JSONDecodeError):
                             continue
                         
-                    self.CIDs = pd.Series(CIDs, name='CIDs', dtype = 'int64')
+                    self.CIDs = pd.Series(CIDs, name='CID', dtype = 'int64')
                     self.dataset = pd.DataFrame()
                     return
             # IF passing in a csv, open as appropriate
             elif compound_file_path.endswith('.csv'):
                 self.dataset = pd.read_csv(compound_file_path,)
-                self.CIDs = self.dataset['CIDs']
+                self.CIDs = self.dataset['CID']
                 return
         # If dataframe passed in, assign to self.dataset
         elif compound_df is not None:
@@ -49,7 +49,7 @@ class DatasetBuilder:
         concat_df = pd.DataFrame()
         
         # create object to iterate through CSV chunks
-        data_reader = pd.read_csv(data_path, chunksize= 10 ** 6, sep= "\t", names = ['CIDs', 'SMILES'])
+        data_reader = pd.read_csv(data_path, chunksize= 10 ** 6, sep= "\t", names = ['CID', 'SMILES'])
         
         # Initialize counter and 
         i = 0
@@ -61,11 +61,11 @@ class DatasetBuilder:
                 print(i)
 
             # if the lowest CID of the chunk is greater than the largest CID we're interested in, then stop
-            if df['CIDs'].iloc[0] > self.CIDs.iloc[-1]:
+            if df['CID'].iloc[0] > self.CIDs.iloc[-1]:
                 return
             # Otherwise, merge the CIDs and SMILES chunk dataframes, and concat. Store as dataset
-            elif self._external_CIDs_in_dataset(df['CIDs']):
-                merged_df = self.CIDs.to_frame().merge(df, how='inner', left_on = 'CIDs', right_on='CIDs', suffixes= (None,'_y'))
+            elif self._external_CIDs_in_dataset(df['CID']):
+                merged_df = self.CIDs.to_frame().merge(df, how='inner', left_on = 'CID', right_on='CID', suffixes= (None,'_y'))
                 concat_df = pd.concat([concat_df, merged_df], axis = 0, ignore_index=True)
             
             # Advance counter
