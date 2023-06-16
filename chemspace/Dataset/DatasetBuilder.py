@@ -17,7 +17,7 @@ class DatasetBuilder:
             compund_df: Optional. A dataframe with CIDs as the indices
         """
         # Initialize list to hold CIDs
-        self.CIDs = []
+        CIDs = []
 
         # If path passed in, open as appropriate and get CIDs
         if compound_file_path:
@@ -25,19 +25,23 @@ class DatasetBuilder:
             if compound_file_path.endswith('.json.gz'):
                 with gzip.open(compound_file_path, 'rt') as zipfile:
                     for line in zipfile:
-                        data = zipfile.readline()
-                        if data and len(data) > 3:
-                            dict = json.loads(data[0:-2])                        
-                            self.CIDs.append(dict['id']['id']['cid'])
-                        else:
-                            self.dataset = pd.DataFrame(index = self.CIDs)
-                            return
+                        try:
+                            dict = json.loads(line[0:-2])                        
+                            CIDs.append(dict['id']['id']['cid'])
+                        except(json.JSONDecodeError):
+                            continue
+                        
+                    self.CIDs = pd.DataFrame(index = CIDs)
+                    self.dataset = pd.DataFrame()
+                    return
             # IF passing in a csv, open as appropriate
             elif compound_file_path.endswith('.csv'):
-                self.dataset = pd.read_csv(compound_file_path, index_col='Unnamed: 0')
+                self.CIDs = pd.read_csv(compound_file_path, index_col='Unnamed: 0')
+                self.dataset = pd.DataFrame()
                 return
         # If dataframe passed in, assign to self.dataset
         elif compound_df is not None:
             self.dataset = compound_df
+            self.CIDs = compound_df.index
             return
         
