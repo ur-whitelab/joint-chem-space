@@ -19,7 +19,7 @@ def dataset_CSV_path():
 
 @pytest.fixture
 def CID_df(dataset_CSV_path):
-    return pd.read_csv(dataset_CSV_path, index_col='Unnamed: 0')
+    return pd.read_csv(dataset_CSV_path)
 
 class TestDatasetBuilder:
     
@@ -34,7 +34,7 @@ class TestDatasetBuilder:
         DB = DatasetBuilder(compound_file_path=compound_file_path)
 
         # Check that indexed dataframe was created
-        assert not DB.CIDs.index.empty
+        assert not DB.CIDs.empty
         # Check number of CIDs imported
         assert len(DB.CIDs) > 250,000
 
