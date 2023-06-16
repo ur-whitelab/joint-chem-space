@@ -46,8 +46,10 @@ class DatasetBuilder:
             return
         
     def add_SMILES(self, data_path: str = '../chemspace/Dataset/Data/CID-SMILES.gz'):
+        concat_df = pd.DataFrame()
+        
         # create object to iterate through CSV chunks
-        data_reader = pd.read_csv(data_path, chunksize= 10 ** 6, sep= "\t", names = ['CID', 'SMILES'], index_col = 'CID')
+        data_reader = pd.read_csv(data_path, chunksize= 10 ** 6, sep= "\t", names = ['CIDs', 'SMILES'])
         
         # Initialize counter and 
         i = 0
@@ -59,14 +61,16 @@ class DatasetBuilder:
                 print(i)
 
             # if the lowest CID of the chunk is greater than the largest CID we're interested in, then stop
-            if df.index[0] > self.CIDs.index[-1]:
+            if df['CIDs'].iloc[0] > self.CIDs.iloc[-1]:
                 return
             # Otherwise, merge the CIDs and SMILES chunk dataframes, and concat. Store as dataset
-            elif self._external_CIDs_in_dataset(df.index):
-                self.dataset = pd.concat([self.dataset, self.CIDs.merge(df, how='inner', left_index = True, right_index=True, suffixes= (None,'_y'))], axis = 0)
+            elif self._external_CIDs_in_dataset(df['CIDs']):
+                merged_df = self.CIDs.to_frame().merge(df, how='inner', left_on = 'CIDs', right_on='CIDs', suffixes= (None,'_y'))
+                concat_df = pd.concat([concat_df, merged_df], axis = 0, ignore_index=True)
             
             # Advance counter
             i = i + 1
+            self.dataset = concat_df
         return
     
     def _external_CIDs_in_dataset(self, external_CIDs: pd.Index) -> bool:
