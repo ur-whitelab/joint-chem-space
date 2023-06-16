@@ -31,13 +31,13 @@ class DatasetBuilder:
                         except(json.JSONDecodeError):
                             continue
                         
-                    self.CIDs = pd.DataFrame(index = CIDs)
+                    self.CIDs = pd.Series(CIDs, name='CIDs', dtype = 'int64')
                     self.dataset = pd.DataFrame()
                     return
             # IF passing in a csv, open as appropriate
             elif compound_file_path.endswith('.csv'):
-                self.CIDs = pd.read_csv(compound_file_path, index_col='Unnamed: 0')
-                self.dataset = pd.DataFrame()
+                self.dataset = pd.read_csv(compound_file_path,)
+                self.CIDs = self.dataset['CIDs']
                 return
         # If dataframe passed in, assign to self.dataset
         elif compound_df is not None:
