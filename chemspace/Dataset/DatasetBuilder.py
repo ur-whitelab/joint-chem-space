@@ -83,4 +83,4 @@ class DatasetBuilder:
             False: If none of the dataset CIDS are present in the external dataframe
 
         """
-        return self.CIDs.index.isin(external_CIDs).any()
+        return self.CIDs.isin(external_CIDs).any()
