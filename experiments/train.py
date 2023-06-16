@@ -13,6 +13,7 @@ from typing import Optional, Union
 def cos_sim(v1, v2):
   return torch.nn.functional.cosine_similarity(v1, v2)
 
+
 def loss_function(zi, zj):
   def sigma(E):
     '''
@@ -25,8 +26,10 @@ def loss_function(zi, zj):
   return -0.5 * ( torch.log(sigma(cos_sim(zi,zj))).mean() + torch.log(sigma(1-cos_sim(zi, noise))).mean() ) + \
          -0.5 * ( torch.log(sigma(cos_sim(zi,zj))).mean() + torch.log(sigma(1-cos_sim(noise, zj))).mean() ) 
 
+
 def rmse(zi, zj):
   return torch.sqrt(torch.mean((zi-zj)**2))
+
 
 @torch.jit.script
 def distance(x, y):
@@ -36,8 +39,10 @@ def distance(x, y):
     return torch.norm(x-y, dim=1).mean()
     # return ((x-y) ** 2).sum() ** 0.5
 
+
+triplet_loss_function = torch.nn.TripletMarginLoss(margin=1)
 @torch.jit.script
-def triplet_loss_function(zA, zP, zN):
+def loss_fxn(zA, zP, zN):
   """
   Implement triplet loss function
   Args:
@@ -45,8 +50,10 @@ def triplet_loss_function(zA, zP, zN):
     zP: positive comparison vector, same as anchor
     zN: negative comparison vector, different from anchor
   """
-  alpha = 0.0
-  return (distance(zA, zP) - distance(zA, zN) + alpha)
+  # alpha = 0.0
+  # return (distance(zA, zP) - distance(zA, zN) + alpha)
+  return triplet_loss_function(zA, zP, zN)
+
 
 # Create a dummy dataset
 class DummyDataset(Dataset):
@@ -65,6 +72,7 @@ class DummyDataset(Dataset):
     def __len__(self):
         return self.num_samples
 
+
 class PubChemDataset(Dataset):
     def __init__(self, 
                  path: str,
@@ -75,7 +83,7 @@ class PubChemDataset(Dataset):
         if frac:
             self.data = self.data.sample(frac=frac).reset_index(drop=True)
 
-    def __getitem__(self, index) -> tuple[str, str]:
+    def __getitem__(self, index):
         sml = self.data["SMILES"][index]
         desc = self.data["Description"][index]
         return {
@@ -86,6 +94,7 @@ class PubChemDataset(Dataset):
     def __len__(self) -> int:
         return len(self.data)
 
+
 def train(dataset: Dataset,
           num_epochs: int = 50,
           batch_size: int = 32,
@@ -95,7 +104,6 @@ def train(dataset: Dataset,
           E_desc: Encoder = None,
           P_desc: Projector = None, # Add encoders/projectors as a list? Addapt the loss to receive n encoders/projectors?
           ) -> None:
-  loss_fxn = torch.nn.TripletMarginLoss(margin=1)
   for i in range(1, num_epochs+1):
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     same_entry_distances = []
@@ -104,11 +112,11 @@ def train(dataset: Dataset,
         x_sml, x_desc = batch['sml'], batch['desc']
         z_sml = P_sml(E_sml(x_sml).to(device))
         z_desc = P_desc(E_desc(x_desc).to(device))
-
-        loss = loss_fxn(z_sml, z_desc, z_desc.roll(3, 0))
+        shift = torch.randint(low=1, high=batch_size, size=(1,)).item()
+        loss = loss_fxn(z_sml, z_desc, z_desc.roll(shift, 0))
 
         same_entry_distance = distance(z_sml, z_desc)
-        different_entry_distance = distance(z_sml, z_desc.roll(3, 0))
+        different_entry_distance = distance(z_sml, z_desc.roll(shift, 0))
         same_entry_distances.append(same_entry_distance.mean().item())
         different_entry_distances.append(different_entry_distance.mean().item())
 
@@ -139,18 +147,18 @@ def test(dataset: Dataset,
     P_sml.eval()
     E_desc.model.eval()
     P_desc.eval()
-    loss_fxn = torch.nn.TripletMarginLoss(margin=1)
     same_entry_distances = []
     different_entry_distances = []
     losses = []
     for batch in dataloader:
-        x_sml, x_desc = batch[0], batch[1]
+        x_sml, x_desc = batch['sml'], batch['desc']
         z_sml = P_sml(E_sml(x_sml).to(device))
         z_desc = P_desc(E_desc(x_desc).to(device))
 
-        loss = loss_fxn(z_sml, z_desc, z_desc.roll(3, 0))
+        shift = torch.randint(low=1, high=batch_size, size=(1,)).item()
+        loss = loss_fxn(z_sml, z_desc, z_desc.roll(shift, 0))
         same_entry_distance = distance(z_sml, z_desc)
-        different_entry_distance = distance(z_sml, z_desc.roll(3, 0))
+        different_entry_distance = distance(z_sml, z_desc.roll(shift, 0))
 
         losses.append(loss.item())
         same_entry_distances.append(same_entry_distance.mean().item())
@@ -159,7 +167,7 @@ def test(dataset: Dataset,
     avg_loss = sum(losses) / len(losses)
     avg_same_entry_distance = sum(same_entry_distances) / len(same_entry_distances)
     avg_different_entry_distance = sum(different_entry_distances) / len(different_entry_distances)
-    print(f'{20*"="} Test {20*"="}\n\tLoss: {loss.item():.4f}')
+    print(f'{20*"="} Test {20*"="}\n\tLoss: {avg_loss:.4f}')
     print(f"\tAverage distance for the same entries: {avg_same_entry_distance}")
     print(f"\tAverage distance for different entries: {avg_different_entry_distance}")
 
@@ -174,8 +182,10 @@ if __name__ == "__main__":
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    dataset = PubChemDataset(path="../chemspace/Dataset/Data/PubChem.csv", frac=0.02)
-    train_data, test_data, val_data = torch.utils.data.random_split(dataset, [int(len(dataset)*0.8), int(len(dataset)*0.1), int(len(dataset)*0.1)])
+    dataset = PubChemDataset(path="../chemspace/Dataset/Data/PubChem.csv")
+    split = [int(len(dataset)*0.8)+2, int(len(dataset)*0.1), int(len(dataset)*0.1)]
+    print(len(dataset), sum(split))
+    train_data, test_data, val_data = torch.utils.data.random_split(dataset, split)
     print(len(train_data), len(test_data), len(val_data))
 
     # Start training
@@ -183,5 +193,6 @@ if __name__ == "__main__":
     train(train_data, optimizer=optimizer, E_sml=E_sml, P_sml=P_sml, E_desc=E_desc, P_desc=P_desc)
 
     # Start testing
-    # test(dataset, E_sml=E_sml, P_sml=P_sml, E_desc=E_desc, P_desc=P_desc)
+    test(test_data, E_sml=E_sml, P_sml=P_sml, E_desc=E_desc, P_desc=P_desc)
+
 
