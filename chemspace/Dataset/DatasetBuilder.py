@@ -42,7 +42,7 @@ class DatasetBuilder:
         # If dataframe passed in, assign to self.dataset
         elif compound_df is not None:
             self.dataset = compound_df
-            self.CIDs = compound_df.index
+            self.CIDs = compound_df['CID']
             return
         
     def add_SMILES(self, data_path: str = '../chemspace/Dataset/Data/CID-SMILES.gz'):
