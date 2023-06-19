@@ -25,6 +25,7 @@ from .blocks import (
     NonLinearReadoutBlock,
     RadialEmbeddingBlock,
     ScaleShiftBlock,
+    ChemspaceReadoutBlock,
 )
 from .utils import (
     compute_fixed_charge_dipole,
@@ -49,6 +50,7 @@ class MACE(torch.nn.Module):
         num_elements: int,
         hidden_irreps: o3.Irreps,
         MLP_irreps: o3.Irreps,
+        out_dim : int,
         atomic_energies: np.ndarray,
         avg_num_neighbors: float,
         atomic_numbers: List[int],
@@ -114,7 +116,7 @@ class MACE(torch.nn.Module):
 
         self.readouts = torch.nn.ModuleList()
         self.readouts.append(LinearReadoutBlock(hidden_irreps))
-
+        
         for i in range(num_interactions - 1):
             if i == num_interactions - 2:
                 hidden_irreps_out = str(
@@ -146,6 +148,7 @@ class MACE(torch.nn.Module):
                 )
             else:
                 self.readouts.append(LinearReadoutBlock(hidden_irreps))
+        self.output = ChemspaceReadoutBlock((hidden_irreps.count(o3.Irrep(0, 1))), out_dim)
 
     def forward(
         self,
@@ -213,17 +216,13 @@ class MACE(torch.nn.Module):
                 sc=sc,
                 node_attrs=data["node_attrs"],
             )
-            node_energies = readout(node_feats).squeeze(-1)  # [n_nodes, ]
-
-            energy = scatter_sum(
-                src=node_energies, index=data["batch"], dim=-1, dim_size=num_graphs
-            )  # [n_graphs,]
-            #energies.append(energy)
-            #node_energies_list.append(node_energies)
+   
             node_feats_list.append(node_feats)
- 
+
+        output_embeddings = self.output(node_feats_list[-1])
+
         return {
-            "node_feat": node_feats_list[-1],
+            "3d_embeddings": output_embeddings,
         }
 
 

@@ -11,7 +11,7 @@ import numpy as np
 import torch.nn.functional
 from e3nn import nn, o3
 from e3nn.util.jit import compile_mode
-
+import torch
 from mace.tools.scatter import scatter_sum
 
 from .irreps_tools import (
@@ -41,6 +41,16 @@ class LinearReadoutBlock(torch.nn.Module):
     def __init__(self, irreps_in: o3.Irreps):
         super().__init__()
         self.linear = o3.Linear(irreps_in=irreps_in, irreps_out=o3.Irreps("0e"))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # [n_nodes, irreps]  # [..., ]
+        return self.linear(x)  # [n_nodes, 1]
+
+
+@compile_mode("script")
+class ChemspaceReadoutBlock(torch.nn.Module):
+    def __init__(self, in_feat_dim: int, out_feat_dim: int):
+        super().__init__()
+        self.linear = torch.nn.Linear(in_feat_dim, out_feat_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # [n_nodes, irreps]  # [..., ]
         return self.linear(x)  # [n_nodes, 1]

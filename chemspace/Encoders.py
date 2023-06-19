@@ -37,7 +37,6 @@ class Encoder:
 
 class Encoder3D:
     def __init__(self, out_dim, num_elements):
-        self.out_dim = out_dim
         self.config = dict(
             r_max=5,
             num_bessel=8,
@@ -51,8 +50,9 @@ class Encoder3D:
             ],
             num_interactions=5,
             num_elements=num_elements,
-            hidden_irreps=e3nn.o3.Irreps("32x0e + 32x1o"),
+            hidden_irreps=e3nn.o3.Irreps("64x0e + 64x1o"),
             MLP_irreps=e3nn.o3.Irreps("16x0e"),
+            out_dim = out_dim,
             gate=torch.nn.functional.silu,
             avg_num_neighbors=8,
             atomic_numbers=16,
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     #test = ["CCO"]
     #print(m(test).shape)
     
-    xyz_path = './zy.xyz'
+    xyz_path = '../zy.xyz'
     #xyz_path = '../experiments/mol.xyz'
-    m3d = Encoder3D(1, 100)
-    print(m3d(xyz_path)['node_feat'])
+    m3d = Encoder3D(1024, 100)
+    print(m3d(xyz_path)['3d_embeddings'].shape)
