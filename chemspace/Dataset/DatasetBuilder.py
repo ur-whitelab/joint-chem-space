@@ -1,6 +1,11 @@
+import sys
+sys.path.append("..")
+
 import pandas as pd
 import gzip
 import json
+from time import sleep
+from chemspace.pug_utils import get_pug_view_page, regulate_api_requests
 
 class DatasetBuilder:
     def __init__(
@@ -84,3 +89,20 @@ class DatasetBuilder:
 
         """
         return self.CIDs.isin(external_CIDs).any()
+
+    def add_pubchem_text(self,):
+        self.no_CID = 0
+        self.text_df = pd.DataFrame(self.CIDs)
+
+        response, pug_view_page_one = get_pug_view_page()
+        self._add_pubchem_text(pug_view_page_one)
+        wait_time = regulate_api_requests(response)
+        total_pages = pug_view_page_one['Annotations']['TotalPages']        
+        for page in range(2,total_pages+1):
+            sleep(wait_time)
+            response, pug_view_page = get_pug_view_page(page=page)
+            wait_time = regulate_api_requests(response)
+            self._add_pubchem_text(pug_view_page)
+            print(f'Page: {page}')
+
+        return
