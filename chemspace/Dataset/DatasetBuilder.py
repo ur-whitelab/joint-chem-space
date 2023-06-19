@@ -106,3 +106,23 @@ class DatasetBuilder:
             print(f'Page: {page}')
 
         return
+    
+    def _add_pubchem_text(self, body: dict):
+        #print(body)
+        description_list = body['Annotations']['Annotation']
+        for description in description_list:
+            if 'LinkedRecords' in description.keys():
+                CID = description['LinkedRecords']['CID'][0]
+                description_source = description['SourceName']
+                description_type = description['Data'][0]['Description']
+                description_text = description['Data'][0]['Value']['StringWithMarkup'][0]['String']
+                #print(description_text)
+                col_name = description_type.replace(" ","")
+                if col_name not in self.text_df.columns:
+                    self.text_df.insert(len(self.text_df.columns),f'{col_name}', [None] * len(self.text_df), allow_duplicates=False)
+                self.text_df.loc[self.dataset.CID == CID, description_type.replace(" ","")] = description_text
+            else:
+                self.no_CID = self.no_CID + 1
+                continue
+        #print(self.no_CID)
+        return
