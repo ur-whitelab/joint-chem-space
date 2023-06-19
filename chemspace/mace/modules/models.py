@@ -185,7 +185,6 @@ class MACE(torch.nn.Module):
         )  # [n_graphs,]
 
         # Embeddings
-        print(data["node_attrs"])
         node_feats = self.node_embedding(data["node_attrs"])
         vectors, lengths = get_edge_vectors_and_lengths(
             positions=data["positions"],

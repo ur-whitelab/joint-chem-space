@@ -56,7 +56,7 @@ class Encoder3D:
             gate=torch.nn.functional.silu,
             avg_num_neighbors=8,
             atomic_numbers=16,
-            atomic_energies=np.array([1,2, 3,4]),
+            atomic_energies=np.array([float(k) for k in range(num_elements)]),
             correlation=3,
         )
         self.model = MACE_modules.MACE(**self.config)
@@ -64,15 +64,15 @@ class Encoder3D:
 
     def __call__(self, xyz_path):
         _, data_config = data.load_from_xyz(xyz_path, config_type_weights={"Default": 1.0})
-        data_config = data_config[0]
-        table = tools.AtomicNumberTable(sorted(list(set(np.ndarray.tolist(data_config.atomic_numbers)))))
-        #self.model = MACE_modules.MACE(**self.config)
-        atomic_data = data.AtomicData.from_config(data_config, z_table=table, cutoff=3.0)
-        print(atomic_data['node_attrs'])
+        table = tools.AtomicNumberTable([k for k in range(1,101)])
+        atomic_data = []
+        for config in data_config:
+            #self.model = MACE_modules.MACE(**self.config)
+            atomic_data.append(data.AtomicData.from_config(config, z_table=table, cutoff=3.0))
         data_loader = tools.torch_geometric.dataloader.DataLoader(
-            dataset=[atomic_data],
-            batch_size=3,
-            shuffle=True,
+            dataset=atomic_data,
+            batch_size=32,
+            shuffle=False,
             drop_last=False,
         )
         batch = next(iter(data_loader))
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     #test = ["CCO"]
     #print(m(test).shape)
     
-    xyz_path = '../zy.xyz'
+    xyz_path = './zy.xyz'
     #xyz_path = '../experiments/mol.xyz'
-    m3d = Encoder3D(1, 4)
-    print(m3d(xyz_path))
+    m3d = Encoder3D(1, 100)
+    print(m3d(xyz_path)['node_feat'])
