@@ -78,4 +78,12 @@ def test_mace():
 
 output1 = test_mace()
 
-print(output1['node_energy'][-1].size())
+print(output1['node_feat'].size())
+
+
+_, out = data.load_from_xyz('./mol.xyz', config_type_weights={"Default": 1.0})
+data_config = out[0]
+table = tools.AtomicNumberTable(sorted(list(set(np.ndarray.tolist(data_config.atomic_numbers)))))
+#self.model = MACE_modules.MACE(**self.config)
+atomic_data = data.AtomicData.from_config(data_config, z_table=table, cutoff=3.0)
+print(atomic_data['node_attrs'].size())

@@ -185,6 +185,7 @@ class MACE(torch.nn.Module):
         )  # [n_graphs,]
 
         # Embeddings
+        print(data["node_attrs"])
         node_feats = self.node_embedding(data["node_attrs"])
         vectors, lengths = get_edge_vectors_and_lengths(
             positions=data["positions"],
@@ -197,6 +198,7 @@ class MACE(torch.nn.Module):
         # Interactions
         energies = [e0]
         node_energies_list = [node_e0]
+        node_feats_list = [node_feats]
         for interaction, product, readout in zip(
             self.interactions, self.products, self.readouts
         ):
@@ -212,42 +214,17 @@ class MACE(torch.nn.Module):
                 sc=sc,
                 node_attrs=data["node_attrs"],
             )
-            node_energies = readout(node_feats)
-#.squeeze(-1)  # [n_nodes, ]
+            node_energies = readout(node_feats).squeeze(-1)  # [n_nodes, ]
 
-            #energy = scatter_sum(
-            #    src=node_energies, index=data["batch"], dim=-1, dim_size=num_graphs
-            #)  # [n_graphs,]
+            energy = scatter_sum(
+                src=node_energies, index=data["batch"], dim=-1, dim_size=num_graphs
+            )  # [n_graphs,]
             #energies.append(energy)
-            node_energies_list.append(node_energies)
-
-        # Sum over energy contributions
-        #contributions = torch.stack(energies, dim=-1)
-        #total_energy = torch.sum(contributions, dim=-1)  # [n_graphs, ]
-        #node_energy_contributions = torch.stack(node_energies_list, dim=-1)
-        #node_energy = torch.sum(node_energy_contributions, dim=-1)  # [n_nodes, ]
-        # Outputs
-        '''
-        forces, virials, stress = get_outputs(
-            energy=total_energy,
-            positions=data["positions"],
-            displacement=displacement,
-            cell=data["cell"],
-            training=training,
-            compute_force=compute_force,
-            compute_virials=compute_virials,
-            compute_stress=compute_stress,
-        )
-        '''
-
+            #node_energies_list.append(node_energies)
+            node_feats_list.append(node_feats)
+ 
         return {
-            #"energy": total_energy,
-            "node_energy": node_energies_list,
-            #"contributions": contributions,
-            #"forces": forces,
-            #"virials": virials,
-            #"stress": stress,
-            #"displacement": displacement,
+            "node_feat": node_feats_list[-1],
         }
 
 

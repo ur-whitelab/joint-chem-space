@@ -40,7 +40,7 @@ class LinearNodeEmbeddingBlock(torch.nn.Module):
 class LinearReadoutBlock(torch.nn.Module):
     def __init__(self, irreps_in: o3.Irreps):
         super().__init__()
-        self.linear = o3.Linear(irreps_in=irreps_in, irreps_out=o3.Irreps("32x0e"))
+        self.linear = o3.Linear(irreps_in=irreps_in, irreps_out=o3.Irreps("0e"))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # [n_nodes, irreps]  # [..., ]
         return self.linear(x)  # [n_nodes, 1]
@@ -56,7 +56,7 @@ class NonLinearReadoutBlock(torch.nn.Module):
         self.linear_1 = o3.Linear(irreps_in=irreps_in, irreps_out=self.hidden_irreps)
         self.non_linearity = nn.Activation(irreps_in=self.hidden_irreps, acts=[gate])
         self.linear_2 = o3.Linear(
-            irreps_in=self.hidden_irreps, irreps_out=o3.Irreps("32x0e")
+            irreps_in=self.hidden_irreps, irreps_out=o3.Irreps("0e")
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # [n_nodes, irreps]  # [..., ]
