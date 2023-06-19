@@ -143,14 +143,14 @@ def get_pug_view_page(heading: str = 'Record Description', page: int = 1):
     # Build URL
     base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/annotations/heading/JSON"
     heading = heading.replace(' ', '+')
-    heading_url = f"heading_type=Compound&heading={heading}&Page={page}"
+    heading_url = f"heading_type=Compound&heading={heading}&page={page}"
     full_url = "?".join([base_url, heading_url])
 
     # Send request
     response = requests.get(full_url)
     # Store response body content as dictionary
     body = json.loads(response.content)
-    
+
     return response, body
 
 def regulate_api_requests(response: str) -> float:
