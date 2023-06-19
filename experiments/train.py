@@ -106,31 +106,47 @@ def train(dataset: Dataset,
           ) -> None:
   for i in range(1, num_epochs+1):
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    E_sml.model.eval()
+    E_desc.model.eval()
+
+    for param in E_sml.model.parameters():
+      param.requires_grad = False
+    for param in E_desc.model.parameters():
+      param.requires_grad = False
+
+    P_sml.train()
+    P_desc.train()
+
     same_entry_distances = []
     different_entry_distances = []
+    losses = []
     for batch in dataloader:
+        optimizer.zero_grad()
+
         x_sml, x_desc = batch['sml'], batch['desc']
         z_sml = P_sml(E_sml(x_sml).to(device))
         z_desc = P_desc(E_desc(x_desc).to(device))
         shift = torch.randint(low=1, high=batch_size, size=(1,)).item()
-        loss = loss_fxn(z_sml, z_desc, z_desc.roll(shift, 0))
 
+        loss = loss_fxn(z_sml, z_desc, z_desc.roll(shift, 0))
+        loss.backward()
+        optimizer.step()
+
+        losses.append(loss.item())
         same_entry_distance = distance(z_sml, z_desc)
         different_entry_distance = distance(z_sml, z_desc.roll(shift, 0))
         same_entry_distances.append(same_entry_distance.mean().item())
         different_entry_distances.append(different_entry_distance.mean().item())
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
     # Calculate average distances
 
+    avg_loss = sum(losses) / len(losses)
     avg_same_entry_distance = sum(same_entry_distances) / len(same_entry_distances)
     avg_different_entry_distance = sum(different_entry_distances) / len(different_entry_distances)
 
     if not i%1:
-        print (f'Epoch: {i}\n\tLoss: {loss.item():.4f}')
+        print (f'Epoch: {i}\n\tLoss: {avg_loss}')
         print(f"\tAverage distance for the same entries: {avg_same_entry_distance}")
         print(f"\tAverage distance for different entries: {avg_different_entry_distance}")
 
@@ -144,8 +160,8 @@ def test(dataset: Dataset,
           ) -> None:
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     E_sml.model.eval()
-    P_sml.eval()
     E_desc.model.eval()
+    P_sml.eval()
     P_desc.eval()
     same_entry_distances = []
     different_entry_distances = []
@@ -156,6 +172,7 @@ def test(dataset: Dataset,
         z_desc = P_desc(E_desc(x_desc).to(device))
 
         shift = torch.randint(low=1, high=batch_size, size=(1,)).item()
+        
         loss = loss_fxn(z_sml, z_desc, z_desc.roll(shift, 0))
         same_entry_distance = distance(z_sml, z_desc)
         different_entry_distance = distance(z_sml, z_desc.roll(shift, 0))
