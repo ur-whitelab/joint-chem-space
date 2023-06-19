@@ -3,6 +3,7 @@ import time
 from typing import Tuple, List, Dict
 from re import search
 import pandas as pd
+import json
 
 
 def get_compound_name_and_smiles(
@@ -129,6 +130,28 @@ def download_compounds(
         
     return names, smiless, descriptions
 
+def get_pug_view_page(heading: str = 'Record Description', page: int = 1):
+    """
+    Function to send a request to get a page from PUG View
+    Args:
+        heading: PubChem compund heading of interest
+        page: page of PUG View to return
+    Returns:
+        response: API response
+        body: response body packaged as a dictionary        
+    """
+    # Build URL
+    base_url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/annotations/heading/JSON"
+    heading = heading.replace(' ', '+')
+    heading_url = f"heading_type=Compound&heading={heading}&Page={page}"
+    full_url = "?".join([base_url, heading_url])
+
+    # Send request
+    response = requests.get(full_url)
+    # Store response body content as dictionary
+    body = json.loads(response.content)
+    
+    return response, body
 
 def regulate_api_requests(response: str) -> float:
     """
