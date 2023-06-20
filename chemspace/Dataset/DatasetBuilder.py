@@ -114,15 +114,25 @@ class DatasetBuilder:
             if 'LinkedRecords' in description.keys() and 'CID' in description['LinkedRecords'].keys():
                 CID = description['LinkedRecords']['CID'][0]
                 description_source = description['SourceName']
-                description_type = description['Data'][0]['Description']
+                if 'Description' not in description['Data'][0].keys():
+                    #print(description)
+                    description_type = 'Undefined'
+                else:
+                    description_type = description['Data'][0]['Description']
                 description_text = description['Data'][0]['Value']['StringWithMarkup'][0]['String']
                 #print(description_text)
                 col_name = description_type.replace(" ","")
                 if col_name not in self.text_df.columns:
                     self.text_df.insert(len(self.text_df.columns),f'{col_name}', [None] * len(self.text_df), allow_duplicates=False)
-                self.text_df.loc[self.dataset.CID == CID, description_type.replace(" ","")] = description_text
+
+                # Append description text if 2nd Undefined description
+                if col_name == 'Undefined' and self.text_df.loc[self.dataset.CID == CID, description_type.replace(" ","")] is not None:
+                    self.text_df.loc[self.dataset.CID == CID, description_type.replace(" ","")] = self.text_df.loc[self.dataset.CID == CID, description_type.replace(" ","")] + description_text
+                # Otherwise just assign the value to the correct index
+                else:
+                    self.text_df.loc[self.dataset.CID == CID, description_type.replace(" ","")] = description_text
             else:
                 self.no_CID = self.no_CID + 1
                 continue
-        #print(self.no_CID)
+            
         return
