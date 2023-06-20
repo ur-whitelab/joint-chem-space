@@ -150,7 +150,7 @@ class DatasetBuilder:
                                             'FDAPharmacologySummary', 
                                             'HIV/AIDSandOpportunisticInfectionDrugs']):
         
-        self.text_df['AllText'] = self.dataset.apply( \
+        self.text_df['AllText'] = self.text_df.apply( \
             lambda x: '  '.join(filter(None, (x[column] for column in cols_to_concat))), axis=1\
                 )
         
