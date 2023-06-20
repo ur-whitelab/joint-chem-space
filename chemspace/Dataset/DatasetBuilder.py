@@ -107,6 +107,8 @@ class DatasetBuilder:
 
         self.concat_text()
 
+        self.dataset = self.dataset.merge(self.text_df, how = 'inner', left_on = 'CID', right_on= 'CID')
+
         return
     
     def _add_pubchem_text(self, body: dict):
