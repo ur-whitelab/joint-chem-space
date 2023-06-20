@@ -105,6 +105,8 @@ class DatasetBuilder:
             self._add_pubchem_text(pug_view_page)
             print(f'Page: {page}')
 
+        self.concat_text()
+
         return
     
     def _add_pubchem_text(self, body: dict):
@@ -134,5 +136,20 @@ class DatasetBuilder:
             else:
                 self.no_CID = self.no_CID + 1
                 continue
-            
+
+        return
+
+    def concat_text(self, 
+                    cols_to_concat: list = ['OntologySummary', 
+                                            'PhysicalDescription', 
+                                            'HazardsSummary', 
+                                            'LiverToxSummary', 
+                                            'Undefined', 
+                                            'FDAPharmacologySummary', 
+                                            'HIV/AIDSandOpportunisticInfectionDrugs']):
+        
+        self.text_df['AllText'] = self.dataset.apply( \
+            lambda x: '  '.join(filter(None, (x[column] for column in cols_to_concat))), axis=1\
+                )
+        
         return
