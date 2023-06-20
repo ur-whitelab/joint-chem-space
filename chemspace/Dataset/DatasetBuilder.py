@@ -111,7 +111,7 @@ class DatasetBuilder:
         #print(body)
         description_list = body['Annotations']['Annotation']
         for description in description_list:
-            if 'LinkedRecords' in description.keys():
+            if 'LinkedRecords' in description.keys() and 'CID' in description['LinkedRecords'].keys():
                 CID = description['LinkedRecords']['CID'][0]
                 description_source = description['SourceName']
                 description_type = description['Data'][0]['Description']
