@@ -130,11 +130,16 @@ class DatasetBuilder:
                     self.text_df.insert(len(self.text_df.columns),f'{col_name}', [None] * len(self.text_df), allow_duplicates=False)
 
                 # Append description text if 2nd Undefined description
-                if col_name == 'Undefined' and self.text_df.loc[self.dataset.CID == CID, description_type.replace(" ","")] is not None:
-                    self.text_df.loc[self.dataset.CID == CID, description_type.replace(" ","")] = self.text_df.loc[self.dataset.CID == CID, description_type.replace(" ","")] + description_text
-                # Otherwise just assign the value to the correct index
+                index = self.text_df.index[(self.text_df.CID == CID)]
+                if not index.empty:
+                    index = index[0]
+                    if col_name == 'Undefined' and (self.text_df.at[index, description_type.replace(" ","")] is not None):
+                        self.text_df.loc[index, description_type.replace(" ","")] = self.text_df.at[index, description_type.replace(" ","")] + " " + description_text
+                    # Otherwise just assign the value to the correct index
+                    else:
+                        self.text_df.loc[index, description_type.replace(" ","")] = description_text
                 else:
-                    self.text_df.loc[self.dataset.CID == CID, description_type.replace(" ","")] = description_text
+                    continue
             else:
                 self.no_CID = self.no_CID + 1
                 continue
