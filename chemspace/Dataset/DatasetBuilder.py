@@ -40,8 +40,8 @@ class DatasetBuilder:
                     self.dataset = pd.DataFrame()
                     return
             # IF passing in a csv, open as appropriate
-            elif compound_file_path.endswith('.csv'):
-                self.dataset = pd.read_csv(compound_file_path,)
+            elif compound_file_path.endswith('.csv') or compound_file_path.endswith('.csv.gz'):
+                self.dataset = pd.read_csv(compound_file_path)
                 self.CIDs = self.dataset['CID']
                 return
         # If dataframe passed in, assign to self.dataset
