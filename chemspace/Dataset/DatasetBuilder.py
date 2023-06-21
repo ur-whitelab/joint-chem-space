@@ -52,6 +52,7 @@ class DatasetBuilder:
         
     def add_SMILES(self, data_path: str = '../chemspace/Dataset/Data/CID-SMILES.gz'):
         concat_df = pd.DataFrame()
+
         self.SMILES_df = pd.DataFrame(self.CIDs)
         
         # create object to iterate through CSV chunks
