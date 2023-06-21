@@ -7,7 +7,7 @@ import pytest
 
 import chemspace as cs
 from chemspace.Dataset.DatasetBuilder import DatasetBuilder
-
+from chemspace.pug_utils import get_pug_view_page
 
 @pytest.fixture
 def pubchem_compund_report_path():
@@ -20,6 +20,11 @@ def dataset_CSV_path():
 @pytest.fixture
 def CID_df(dataset_CSV_path):
     return pd.read_csv(dataset_CSV_path)
+
+@pytest.fixture
+def pug_view_page_one():
+    response, pug_view_page_one = get_pug_view_page()
+    return pug_view_page_one
 
 class TestDatasetBuilder:
     
@@ -50,3 +55,20 @@ class TestDatasetBuilder:
         # Check Number of CIDs imported
         assert len(DB.CIDs) > 250,000
 
+    def test_add_pubchem_text(self,CID_df, pug_view_page_one):
+        """
+        Test to cover method for adding information from a PUG View page to a dataset
+        """
+        # Create Dataset Builder instance
+        DB = DatasetBuilder(compound_df=CID_df)
+        DB.text_df = pd.DataFrame(DB.CIDs)
+        DB.no_CID = 0
+        DB._add_pubchem_text(pug_view_page_one)
+
+        # Assert that columns were added to the text dataframe
+        assert len(DB.text_df.columns) > 1
+
+        # assert that each column has non Null values
+        assert (DB.text_df['HazardsSummary'].notna()).any()
+        assert (DB.text_df['PhysicalDescription'].notna()).any()
+        
