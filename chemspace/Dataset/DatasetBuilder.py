@@ -240,5 +240,7 @@ class DatasetBuilder:
         """
         Method to remove rows that have no description at all from the dataset
         """
+        # Remove rows where the `AllText` value is None 
+        # so that training is not negatively impacted by mixed type columns
         self.dataset.dropna(subset=['AllText'], inplace=True, ignore_index = True)
         return
