@@ -55,7 +55,7 @@ class TestDatasetBuilder:
         # Check Number of CIDs imported
         assert len(DB.CIDs) > 250,000
 
-    def test_add_pubchem_text(self,CID_df, pug_view_page_one):
+    def test_add_pubchem_text(self, CID_df, pug_view_page_one):
         """
         Test to cover method for adding information from a PUG View page to a dataset
         """
