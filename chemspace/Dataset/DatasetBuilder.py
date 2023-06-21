@@ -127,7 +127,7 @@ class DatasetBuilder:
             # Send page to method to parse page and add descriptions to text_df dataframe
             self._add_pubchem_text(pug_view_page)
             # Display page number completed
-            print(f'Page: {page}')
+            print(f'Page: {page}/{total_pages}')
 
         # Concatenate all of the text descriptions for each compound into a single column
         self.concat_text()
