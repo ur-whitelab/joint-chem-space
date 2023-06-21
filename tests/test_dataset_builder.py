@@ -82,8 +82,10 @@ class TestDatasetBuilder:
         DB.no_CID = 0
         DB._add_pubchem_text(pug_view_page_one)
 
+        # Concatenate text descriptions
         DB.concat_text(cols_to_concat=DB.text_df.columns.drop('CID'))
 
+        # Ensure new column was created and that there are non-null values present
         assert 'AllText' in DB.text_df.columns
         assert (DB.text_df['AllText'].notna()).any()
 
@@ -97,13 +99,19 @@ class TestDatasetBuilder:
         DB.no_CID = 0
         DB._add_pubchem_text(pug_view_page_one)
 
+        # Concatenate text
         DB.concat_text(cols_to_concat=DB.text_df.columns.drop('CID'))
+        # Replace empty strings with None values (caused by using a small test datset)
         DB.text_df.replace(to_replace = '', value = None, inplace=True)
+        # Merge dataframes to update dataset value
         DB.dataset = DB.dataset.merge(DB.text_df, how = 'inner', left_on = 'CID', right_on= 'CID')
 
+        # Measure number of rows in dataset before dropping rows
         orginal_length = len(DB.dataset)
+        # Drop rows with Null values for `AllText`
         DB.clean_dataset()
 
+        # Assert only non-null values are left and that there are less rows than orignially
         assert (DB.dataset['AllText'].notna()).all()
         assert len(DB.dataset) < orginal_length
         
