@@ -104,22 +104,35 @@ class DatasetBuilder:
         Method to add text from PUG View api to dataset
         Sends a request to the PUG View api for a page, and iterates through all pages to get all descriptions
         """
+        # Initialize counter for records without CIDs linked and dataframe to hold all text descriptions
         self.no_CID = 0
         self.text_df = pd.DataFrame(self.CIDs)
 
+        # Get first page and determine appropriate wait time before next request
         response, pug_view_page_one = get_pug_view_page()
         self._add_pubchem_text(pug_view_page_one)
         wait_time = regulate_api_requests(response)
+        
+        # Get total number of pages avaliable in PUG View from first page info
         total_pages = pug_view_page_one['Annotations']['TotalPages']        
+
+        # Iterate from 2nd page through all pages avaliable
         for page in range(2,total_pages+1):
+            # Wait as appropriate before sending next request
             sleep(wait_time)
+            # Send next request and store response and response body
             response, pug_view_page = get_pug_view_page(page=page)
+            # Calculate next wait time
             wait_time = regulate_api_requests(response)
+            # Send page to method to parse page and add descriptions to text_df dataframe
             self._add_pubchem_text(pug_view_page)
+            # Display page number completed
             print(f'Page: {page}')
 
+        # Concatenate all of the text descriptions for each compound into a single column
         self.concat_text()
 
+        # Merge the dataframe containing text descriptions with the dataset
         self.dataset = self.dataset.merge(self.text_df, how = 'inner', left_on = 'CID', right_on= 'CID')
 
         return
