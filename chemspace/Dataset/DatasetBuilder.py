@@ -51,6 +51,12 @@ class DatasetBuilder:
             return
         
     def add_SMILES(self, data_path: str = '../chemspace/Dataset/Data/CID-SMILES.gz'):
+        """
+        Method to add SMILES information from a zipped file from the PubChem ftp server to the dataset
+        Args:
+            datapath: path to the zipped csv file from PubChem contianing SMILES
+
+        """
         concat_df = pd.DataFrame()
 
         self.SMILES_df = pd.DataFrame(self.CIDs)
@@ -93,7 +99,11 @@ class DatasetBuilder:
         """
         return self.CIDs.isin(external_CIDs).any()
 
-    def add_pubchem_text(self,):
+    def add_pubchem_text(self):
+        """
+        Method to add text from PUG View api to dataset
+        Sends a request to the PUG View api for a page, and iterates through all pages to get all descriptions
+        """
         self.no_CID = 0
         self.text_df = pd.DataFrame(self.CIDs)
 
@@ -115,19 +125,21 @@ class DatasetBuilder:
         return
     
     def _add_pubchem_text(self, body: dict):
-        #print(body)
+        """
+        Method to add the body of a single PUG View page to a dataframe contianing only the textual descriptions from pubchem
+        Args:
+            body: response body of the api request, as a dictionary
+        """
         description_list = body['Annotations']['Annotation']
         for description in description_list:
             if 'LinkedRecords' in description.keys() and 'CID' in description['LinkedRecords'].keys():
                 CID = description['LinkedRecords']['CID'][0]
                 description_source = description['SourceName']
                 if 'Description' not in description['Data'][0].keys():
-                    #print(description)
                     description_type = 'Undefined'
                 else:
                     description_type = description['Data'][0]['Description']
                 description_text = description['Data'][0]['Value']['StringWithMarkup'][0]['String']
-                #print(description_text)
                 col_name = description_type.replace(" ","")
                 if col_name not in self.text_df.columns:
                     self.text_df.insert(len(self.text_df.columns),f'{col_name}', [None] * len(self.text_df), allow_duplicates=False)
@@ -157,6 +169,13 @@ class DatasetBuilder:
                                             'Undefined', 
                                             'FDAPharmacologySummary', 
                                             'HIV/AIDSandOpportunisticInfectionDrugs']):
+        """
+        Method to concatenate the values of textual columns 
+        into one column that contains all text descriptions for a given compound in each row
+        Args:
+            cols_to_concate: list of columns to concatenate.
+            `                   Can be adjusted as more types of text descriptions become of interest
+        """
         
         self.text_df['AllText'] = self.text_df.apply( \
             lambda x: '  '.join(filter(None, (x[column] for column in cols_to_concat))), axis=1\
@@ -165,10 +184,17 @@ class DatasetBuilder:
         return
     
     def clean_dataset(self):
+        """
+        Method to perform cleaning operations to the dataset
+        As specific methods are added they can be called here so that they can all be run easily
+        """
         self._remove_missing_descriptions()
 
         return
 
     def _remove_missing_descriptions(self):
+        """
+        Method to remove rows that have no description at all from the dataset
+        """
         self.dataset.dropna(subset=['AllText'], inplace=True, ignore_index = True)
         return
