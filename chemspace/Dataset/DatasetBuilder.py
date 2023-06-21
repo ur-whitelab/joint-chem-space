@@ -231,6 +231,7 @@ class DatasetBuilder:
         Method to perform cleaning operations to the dataset
         As specific methods are added they can be called here so that they can all be run easily
         """
+        # Remove any rows for compounds that have no descriptions
         self._remove_missing_descriptions()
 
         return
