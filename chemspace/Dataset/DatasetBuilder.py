@@ -163,3 +163,12 @@ class DatasetBuilder:
                 )
         
         return
+    
+    def clean_dataset(self):
+        self._remove_missing_descriptions()
+
+        return
+
+    def _remove_missing_descriptions(self):
+        self.dataset.dropna(subset=['AllText'], inplace=True)
+        return
