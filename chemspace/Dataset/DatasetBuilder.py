@@ -142,33 +142,61 @@ class DatasetBuilder:
         Method to add the body of a single PUG View page to a dataframe contianing only the textual descriptions from pubchem
         Args:
             body: response body of the api request, as a dictionary
+        TODO: Consider if we want to change how we handle cases where there is no CID. 
+                After name and synonym information is added we may want to add anyway, matching on name, 
+                and see if there are SMILES associated with it since we're training on SMILES and text
         """
+        # Parse the dictionary to get the list of all descriptions for the compounds in the page
         description_list = body['Annotations']['Annotation']
+
+        # Iterate through list of descriptions
         for description in description_list:
+            
+            # Check the description for a CID in 'LinkedRecords' 
+            # If one is present, we want to add the information to the dataset
             if 'LinkedRecords' in description.keys() and 'CID' in description['LinkedRecords'].keys():
+                
+                # Get information of interest from the compound description dictionary
+                # interested in CID, description type (used as column names for organization), 
+                # and text description itself. 
+                # In the future we may want to use description source, so we're gathering it here just in case
                 CID = description['LinkedRecords']['CID'][0]
                 description_source = description['SourceName']
+                description_text = description['Data'][0]['Value']['StringWithMarkup'][0]['String']
+                
+                # If there is no information given for what kind of description it is, mark as undefined so we can still save
                 if 'Description' not in description['Data'][0].keys():
                     description_type = 'Undefined'
                 else:
                     description_type = description['Data'][0]['Description']
-                description_text = description['Data'][0]['Value']['StringWithMarkup'][0]['String']
+                
+                # Create appropriate column name from description type
                 col_name = description_type.replace(" ","")
+                # If a column with that name doesn't already exist in the dataframe, 
+                # create a new empty column and add
                 if col_name not in self.text_df.columns:
                     self.text_df.insert(len(self.text_df.columns),f'{col_name}', [None] * len(self.text_df), allow_duplicates=False)
 
-                # Append description text if 2nd Undefined description
+                # Get the index of the dataframe of the compound with the matching CID
+                # `index` is type pd.DataFrame here
                 index = self.text_df.index[(self.text_df.CID == CID)]
+                
+                # If there is an index, add the description to the dataframe as appropriate
                 if not index.empty:
+                    # Get the index from the DataFrame
                     index = index[0]
+                    # Append description text if 2nd Undefined description for the compound. 
+                    # This prevents overwriting the first undefined description when more than one is present
                     if col_name == 'Undefined' and (self.text_df.at[index, description_type.replace(" ","")] is not None):
                         self.text_df.loc[index, description_type.replace(" ","")] = self.text_df.at[index, description_type.replace(" ","")] + " " + description_text
                     # Otherwise just assign the value to the correct index
                     else:
                         self.text_df.loc[index, description_type.replace(" ","")] = description_text
+                # If an index is not present, we cannot add to dataset
                 else:
                     continue
             else:
+                # If there is no CID information or linked record, increase counter for missing CIDs
                 self.no_CID = self.no_CID + 1
                 continue
 
