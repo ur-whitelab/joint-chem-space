@@ -170,5 +170,5 @@ class DatasetBuilder:
         return
 
     def _remove_missing_descriptions(self):
-        self.dataset.dropna(subset=['AllText'], inplace=True)
+        self.dataset.dropna(subset=['AllText'], inplace=True, ignore_index = True)
         return
