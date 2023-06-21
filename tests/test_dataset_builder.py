@@ -101,8 +101,7 @@ class TestDatasetBuilder:
 
         # Concatenate text
         DB.concat_text(cols_to_concat=DB.text_df.columns.drop('CID'))
-        # Replace empty strings with None values (caused by using a small test datset)
-        DB.text_df.replace(to_replace = '', value = None, inplace=True)
+
         # Merge dataframes to update dataset value
         DB.dataset = DB.dataset.merge(DB.text_df, how = 'inner', left_on = 'CID', right_on= 'CID')
 

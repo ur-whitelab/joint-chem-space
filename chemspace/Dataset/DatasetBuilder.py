@@ -224,6 +224,9 @@ class DatasetBuilder:
             lambda x: '  '.join(filter(None, (x[column] for column in cols_to_concat))), axis=1\
                 )
         
+        # Replace any `''` values (generated when all descriptions are None) with a None value
+        self.text_df.replace(to_replace = '', value = None, inplace=True)
+        
         return
     
     def clean_dataset(self):
