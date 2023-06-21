@@ -98,11 +98,12 @@ class TestDatasetBuilder:
         DB._add_pubchem_text(pug_view_page_one)
 
         DB.concat_text(cols_to_concat=DB.text_df.columns.drop('CID'))
-        DB.text_df.replace(to_replace = '', value = None)
+        DB.text_df.replace(to_replace = '', value = None, inplace=True)
         DB.dataset = DB.dataset.merge(DB.text_df, how = 'inner', left_on = 'CID', right_on= 'CID')
 
+        orginal_length = len(DB.dataset)
         DB.clean_dataset()
 
         assert (DB.dataset['AllText'].notna()).all()
-
+        assert len(DB.dataset) < orginal_length
         
