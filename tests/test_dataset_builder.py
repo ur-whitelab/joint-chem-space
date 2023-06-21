@@ -71,4 +71,18 @@ class TestDatasetBuilder:
         # assert that each column has non Null values
         assert (DB.text_df['HazardsSummary'].notna()).any()
         assert (DB.text_df['PhysicalDescription'].notna()).any()
-        
+
+    def test_concatenate_columns(self, CID_df, pug_view_page_one):
+        """
+        Unit test for DatasetBuilder.concat_text()
+        """
+        # Create Dataset Builder instance
+        DB = DatasetBuilder(compound_df=CID_df)
+        DB.text_df = pd.DataFrame(DB.CIDs)
+        DB.no_CID = 0
+        DB._add_pubchem_text(pug_view_page_one)
+
+        DB.concat_text(cols_to_concat=DB.text_df.columns.drop('CID'))
+
+        assert 'AllText' in DB.text_df.columns
+        assert (DB.text_df['AllText'].notna()).any()
