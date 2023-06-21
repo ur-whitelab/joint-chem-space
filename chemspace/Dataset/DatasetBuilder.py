@@ -218,6 +218,8 @@ class DatasetBuilder:
             `                   Can be adjusted as more types of text descriptions become of interest
         """
         
+        # Concatenate the values for all the text description columns (on a row by row basis) 
+        # into one value for a new column called `AllText`
         self.text_df['AllText'] = self.text_df.apply( \
             lambda x: '  '.join(filter(None, (x[column] for column in cols_to_concat))), axis=1\
                 )
