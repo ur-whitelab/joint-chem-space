@@ -105,7 +105,7 @@ class DatasetBuilder:
 
     def count_atoms_in_compunds(self):
 
-        self.dataset['NAtoms'] = self.dataset['SMILES'].apply(lambda x: self._get_no_atoms(x))
+        self.dataset['NumAtoms'] = self.dataset['SMILES'].apply(lambda x: self._get_no_atoms(x))
 
         return
 
@@ -260,7 +260,7 @@ class DatasetBuilder:
         df_lenth = len(self.dataset)
 
         # Remove any rows for compounds that have invalid SMILES
-        self._remove_empty_rows_in_column(column='NAtoms')
+        self._remove_empty_rows_in_column(column='NumAtoms')
         rows_removed = df_lenth - len(self.dataset)
         print(f"{rows_removed} compunds with invalid SMILES removed from dataset")
 
