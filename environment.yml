@@ -13,4 +13,4 @@ dependencies:
   - ipykernel
   - datasets
   - transformers
-  
+  - pytorch
