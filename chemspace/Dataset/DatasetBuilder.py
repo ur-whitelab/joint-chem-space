@@ -88,6 +88,7 @@ class DatasetBuilder:
             i = i + 1
             self.SMILES_df = concat_df
         self.dataset = self.dataset.merge(self.SMILES_df, how = 'inner', left_on='CID', right_on='CID')
+        self.count_atoms_in_compunds()
         return
     
     def _external_CIDs_in_dataset(self, external_CIDs: pd.Index) -> bool:
@@ -264,7 +265,7 @@ class DatasetBuilder:
         print(f"{rows_removed} compunds with invalid SMILES removed from dataset")
 
         df_lenth = len(self.dataset)
-        
+
         return
 
     def _remove_empty_rows_in_column(self, column: str = None) -> None:
