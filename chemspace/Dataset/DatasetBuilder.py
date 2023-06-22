@@ -50,7 +50,7 @@ class DatasetBuilder:
             self.CIDs = compound_df['CID']
             return
         
-    def add_SMILES(self, data_path: str = '../chemspace/Dataset/Data/CID-SMILES.gz'):
+    def add_SMILES(self, data_path: str = '../chemspace/Dataset/Data/CID-SMILES.gz') -> None:
         """
         Method to add SMILES information from a zipped file from the PubChem ftp server to the dataset
         Args:
@@ -99,7 +99,7 @@ class DatasetBuilder:
         """
         return self.CIDs.isin(external_CIDs).any()
 
-    def add_pubchem_text(self):
+    def add_pubchem_text(self) -> None:
         """
         Method to add text from PUG View api to dataset
         Sends a request to the PUG View api for a page, and iterates through all pages to get all descriptions
@@ -137,7 +137,7 @@ class DatasetBuilder:
 
         return
     
-    def _add_pubchem_text(self, body: dict):
+    def _add_pubchem_text(self, body: dict) -> None:
         """
         Method to add the body of a single PUG View page to a dataframe contianing only the textual descriptions from pubchem
         Args:
@@ -209,7 +209,7 @@ class DatasetBuilder:
                                             'LiverToxSummary', 
                                             'Undefined', 
                                             'FDAPharmacologySummary', 
-                                            'HIV/AIDSandOpportunisticInfectionDrugs']):
+                                            'HIV/AIDSandOpportunisticInfectionDrugs']) -> None:
         """
         Method to concatenate the values of textual columns 
         into one column that contains all text descriptions for a given compound in each row
@@ -229,7 +229,7 @@ class DatasetBuilder:
         
         return
     
-    def clean_dataset(self):
+    def clean_dataset(self) -> None:
         """
         Method to perform cleaning operations to the dataset
         As specific methods are added they can be called here so that they can all be run easily
@@ -239,7 +239,7 @@ class DatasetBuilder:
 
         return
 
-    def _remove_missing_descriptions(self):
+    def _remove_missing_descriptions(self) -> None:
         """
         Method to remove rows that have no description at all from the dataset
         """
