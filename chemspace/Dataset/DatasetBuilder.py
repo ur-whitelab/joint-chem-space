@@ -251,15 +251,19 @@ class DatasetBuilder:
         As specific methods are added they can be called here so that they can all be run easily
         """
         # Remove any rows for compounds that have no descriptions
-        self._remove_missing_descriptions()
+        self._remove_empty_rows_in_column(column='AllText')
 
+        # Remove any rows for compounds that have invalid SMILES
+        self._remove_empty_rows_in_column(column='NAtoms')
         return
 
-    def _remove_missing_descriptions(self) -> None:
+    def _remove_empty_rows_in_column(self, column: str = None) -> None:
         """
         Method to remove rows that have no description at all from the dataset
         """
         # Remove rows where the `AllText` value is None 
         # so that training is not negatively impacted by mixed type columns
-        self.dataset.dropna(subset=['AllText'], inplace=True, ignore_index = True)
+        self.dataset.dropna(subset=[column], inplace=True, ignore_index = True)
         return
+
+
