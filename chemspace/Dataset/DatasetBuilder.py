@@ -5,6 +5,9 @@ import pandas as pd
 import gzip
 import json
 from time import sleep
+
+from rdkit.Chem import MolFromSmiles
+
 from chemspace.pug_utils import get_pug_view_page, regulate_api_requests
 
 class DatasetBuilder:
@@ -98,6 +101,19 @@ class DatasetBuilder:
 
         """
         return self.CIDs.isin(external_CIDs).any()
+
+    def count_atoms_in_compunds(self):
+
+        self.dataset['NAtoms'] = self.dataset['SMILES'].apply(lambda x: self._get_no_atoms(x))
+
+        return
+
+    def _get_no_atoms(self, SMILES):
+        m = MolFromSmiles(SMILES)
+        if not m:
+            return None
+        else:
+            return m.GetNumAtoms()
 
     def add_pubchem_text(self) -> None:
         """
