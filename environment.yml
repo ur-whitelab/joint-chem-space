@@ -13,8 +13,5 @@ dependencies:
   - ipykernel
   - datasets
   - transformers
-<<<<<<< HEAD
   - pytorch
-=======
   
->>>>>>> ad9c930 (updated requirements: inlcuded transformers)
