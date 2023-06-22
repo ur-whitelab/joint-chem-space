@@ -108,7 +108,7 @@ class TestDatasetBuilder:
         # Measure number of rows in dataset before dropping rows
         orginal_length = len(DB.dataset)
         # Drop rows with Null values for `AllText`
-        DB.clean_dataset('AllText')
+        DB.clean_dataset()
 
         # Assert only non-null values are left and that there are less rows than orignially
         assert (DB.dataset['AllText'].notna()).all()
