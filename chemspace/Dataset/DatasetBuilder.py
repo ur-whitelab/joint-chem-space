@@ -104,12 +104,22 @@ class DatasetBuilder:
         return self.CIDs.isin(external_CIDs).any()
 
     def count_atoms_in_compunds(self):
-
+        """
+        Method to add a column to the dataset containing the number of atoms in each compound
+        """
         self.dataset['NumAtoms'] = self.dataset['SMILES'].apply(lambda x: self._get_no_atoms(x))
 
         return
 
     def _get_no_atoms(self, SMILES):
+        """
+        Get the number of atoms in a compound from its SMILES representation
+        Args:
+            SMILES: string containing SMILES representation for one compound
+        Returns:
+            int: number of atoms in the compound
+            None: if invalid SMILES that can't be converted by rdkit
+        """
         m = MolFromSmiles(SMILES)
         if not m:
             return None
