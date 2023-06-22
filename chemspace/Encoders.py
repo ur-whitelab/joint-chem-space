@@ -32,4 +32,5 @@ class Encoder:
 if __name__ == "__main__":
     m = Encoder()
     test = ["CCO"]
+    print(torch.Tensor(1, 512, 384).shape)
     print(m(test).shape)
