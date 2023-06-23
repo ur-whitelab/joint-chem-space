@@ -89,9 +89,9 @@ class TestDatasetBuilder:
         assert 'AllText' in DB.text_df.columns
         assert (DB.text_df['AllText'].notna()).any()
 
-    def test_concatenate_columns(self, CID_df, pug_view_page_one):
+    def test_clean_dataset(self, CID_df, pug_view_page_one):
         """
-        Unit test for DatasetBuilder.concat_text()
+        Unit test for DatasetBuilder.clean_dataset()
         """
         # Create Dataset Builder instance
         DB = DatasetBuilder(compound_df=CID_df)
