@@ -261,20 +261,23 @@ class DatasetBuilder:
         Method to perform cleaning operations to the dataset
         As specific methods are added they can be called here so that they can all be run easily
         """
+
         df_lenth = len(self.dataset)
+
+        if 'AllText' in self.dataset.columns:
         # Remove any rows for compounds that have no descriptions
-        self._remove_empty_rows_in_column(column='AllText')
-        rows_removed = df_lenth - len(self.dataset)
-        print(f"{rows_removed} compunds with no descriptions removed from dataset")
+            self._remove_empty_rows_in_column(column='AllText')
+            rows_removed = df_lenth - len(self.dataset)
+            print(f"{rows_removed} compunds with no descriptions removed from dataset")
+            df_lenth = len(self.dataset)
 
-        df_lenth = len(self.dataset)
+        if 'NumAtoms' in self.dataset.columns:
+            # Remove any rows for compounds that have invalid SMILES
+            self._remove_empty_rows_in_column(column='NumAtoms')
+            rows_removed = df_lenth - len(self.dataset)
+            print(f"{rows_removed} compunds with invalid SMILES removed from dataset")
 
-        # Remove any rows for compounds that have invalid SMILES
-        self._remove_empty_rows_in_column(column='NumAtoms')
-        rows_removed = df_lenth - len(self.dataset)
-        print(f"{rows_removed} compunds with invalid SMILES removed from dataset")
-
-        df_lenth = len(self.dataset)
+            df_lenth = len(self.dataset)
 
         return
 
