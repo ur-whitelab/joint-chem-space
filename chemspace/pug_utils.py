@@ -63,8 +63,9 @@ def get_compound_description(
 
 
 def download_compounds(
-        start_cid: int,
-        end_cid: int
+        start_cid: int = None,
+        end_cid: int = None,
+        cid_list: List = None,
     ) -> Tuple[List[str], List[str], List[str]]:
     """
     Downloads compound data between the start_cid and end_cid, inclusive.
@@ -80,11 +81,16 @@ def download_compounds(
             smiless (List[str]): A list of SMILES strings of the compounds.
             descriptions (List[str]): A list of descriptions of the compounds.
     """
+    if cid_list:
+        pass
+    elif start_cid and end_cid:
+        cid_list = range(start_cid, end_cid+1)
+
     names = []
     smiless = []
     descriptions = []
     wait_time = 0.2
-    for cid in range(start_cid, end_cid+1):
+    for cid in cid_list:
         # Send request to get compound name and SMILES
         name_response, c_name, c_smiles = get_compound_name_and_smiles(cid)
         
