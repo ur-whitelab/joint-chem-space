@@ -120,5 +120,6 @@ class TestDatasetBuilder:
 
         # Assert only non-null values are left and that there are less rows than orignially
         assert (DB.dataset['AllText'].notna()).all()
+        assert (DB.dataset['NumAtoms'].notna()).all()
         assert len(DB.dataset) < orginal_length
         
