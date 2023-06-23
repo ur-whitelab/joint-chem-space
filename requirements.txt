@@ -6,4 +6,5 @@ pandas
 pytest
 ipykernel
 datasets
-seaborn
+transformers
+pytorch
