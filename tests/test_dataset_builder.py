@@ -106,7 +106,6 @@ class TestDatasetBuilder:
         DB.text_df = pd.DataFrame(DB.CIDs)
         DB.no_CID = 0
         DB._add_pubchem_text(pug_view_page_one)
-        DB.add_SMILES(data_path='./chemspace/Dataset/Data/CID-SMILES.gz')
 
         # Concatenate text
         DB.concat_text(cols_to_concat=DB.text_df.columns.drop('CID'))
