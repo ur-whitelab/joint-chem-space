@@ -97,7 +97,8 @@ class TestDatasetBuilder:
         assert 'AllText' in DB.text_df.columns
         assert (DB.text_df['AllText'].notna()).any()
 
-    def test_clean_dataset(self, dataset_df, pug_view_page_one):
+    @pytest.mark.parametrize('use_text', [True, False])
+    def test_clean_dataset(self, dataset_df, pug_view_page_one, use_text):
         """
         Unit test for DatasetBuilder.clean_dataset()
         """
@@ -105,13 +106,14 @@ class TestDatasetBuilder:
         DB = DatasetBuilder(compound_df=dataset_df)
         DB.text_df = pd.DataFrame(DB.CIDs)
         DB.no_CID = 0
-        DB._add_pubchem_text(pug_view_page_one)
+        if use_text:
+            DB._add_pubchem_text(pug_view_page_one)
 
-        # Concatenate text
-        DB.concat_text(cols_to_concat=DB.text_df.columns.drop('CID'))
+            # Concatenate text
+            DB.concat_text(cols_to_concat=DB.text_df.columns.drop('CID'))
 
-        # Merge dataframes to update dataset value
-        DB.dataset = DB.dataset.merge(DB.text_df, how = 'inner', left_on = 'CID', right_on= 'CID')
+            # Merge dataframes to update dataset value
+            DB.dataset = DB.dataset.merge(DB.text_df, how = 'inner', left_on = 'CID', right_on= 'CID')
 
         # Measure number of rows in dataset before dropping rows
         orginal_length = len(DB.dataset)
@@ -119,7 +121,8 @@ class TestDatasetBuilder:
         DB.clean_dataset()
 
         # Assert only non-null values are left and that there are less rows than orignially
-        assert (DB.dataset['AllText'].notna()).all()
+        if use_text:
+            assert (DB.dataset['AllText'].notna()).all()
         assert (DB.dataset['NumAtoms'].notna()).all()
         assert len(DB.dataset) < orginal_length
         
