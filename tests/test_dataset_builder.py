@@ -14,11 +14,19 @@ def pubchem_compund_report_path():
     return os.path.abspath('./chemspace/Dataset/Data/PubChem_compound_list_records.json.gz')
 
 @pytest.fixture
-def dataset_CSV_path():
+def CID_CSV_path():
     return os.path.abspath('./chemspace/Dataset/Data/CIDs.csv')
 
 @pytest.fixture
-def CID_df(dataset_CSV_path):
+def dataset_CSV_path():
+    return os.path.abspath('./chemspace/Dataset/Data/Dataset.csv')
+
+@pytest.fixture
+def CID_df(CID_CSV_path):
+    return pd.read_csv(CID_CSV_path)
+
+@pytest.fixture
+def dataset_df(dataset_CSV_path):
     return pd.read_csv(dataset_CSV_path)
 
 @pytest.fixture
@@ -29,7 +37,7 @@ def pug_view_page_one():
 class TestDatasetBuilder:
     
     @pytest.mark.zipped_files
-    @pytest.mark.parametrize('compound_file_path',['pubchem_compund_report_path', 'dataset_CSV_path'])
+    @pytest.mark.parametrize('compound_file_path',['pubchem_compund_report_path', 'CID_CSV_path'])
     def test_instantiate_DB_from_file(self, compound_file_path, request):
         """
         Tests to cover instantiating a DatasetBuilder object from a zipped JSON file or a CSV
@@ -89,21 +97,23 @@ class TestDatasetBuilder:
         assert 'AllText' in DB.text_df.columns
         assert (DB.text_df['AllText'].notna()).any()
 
-    def test_clean_dataset(self, CID_df, pug_view_page_one):
+    @pytest.mark.parametrize('use_text', [True, False])
+    def test_clean_dataset(self, dataset_df, pug_view_page_one, use_text):
         """
         Unit test for DatasetBuilder.clean_dataset()
         """
         # Create Dataset Builder instance
-        DB = DatasetBuilder(compound_df=CID_df)
+        DB = DatasetBuilder(compound_df=dataset_df)
         DB.text_df = pd.DataFrame(DB.CIDs)
         DB.no_CID = 0
-        DB._add_pubchem_text(pug_view_page_one)
+        if use_text:
+            DB._add_pubchem_text(pug_view_page_one)
 
-        # Concatenate text
-        DB.concat_text(cols_to_concat=DB.text_df.columns.drop('CID'))
+            # Concatenate text
+            DB.concat_text(cols_to_concat=DB.text_df.columns.drop('CID'))
 
-        # Merge dataframes to update dataset value
-        DB.dataset = DB.dataset.merge(DB.text_df, how = 'inner', left_on = 'CID', right_on= 'CID')
+            # Merge dataframes to update dataset value
+            DB.dataset = DB.dataset.merge(DB.text_df, how = 'inner', left_on = 'CID', right_on= 'CID')
 
         # Measure number of rows in dataset before dropping rows
         orginal_length = len(DB.dataset)
@@ -111,6 +121,8 @@ class TestDatasetBuilder:
         DB.clean_dataset()
 
         # Assert only non-null values are left and that there are less rows than orignially
-        assert (DB.dataset['AllText'].notna()).all()
+        if use_text:
+            assert (DB.dataset['AllText'].notna()).all()
+        assert (DB.dataset['NumAtoms'].notna()).all()
         assert len(DB.dataset) < orginal_length
         
