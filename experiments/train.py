@@ -78,8 +78,6 @@ class PubChemDataset(Dataset):
                  path: str,
                  frac: Optional[Union[float, None]] = None
                 ) -> None:
-      
-        print(f"Loading dataset from {path}")
         self.data = pd.read_csv(path)
         self.data = self.data[['SMILES', 'AllText']].dropna().reset_index(drop=True)
         if frac:
@@ -187,29 +185,39 @@ def train(dataset: Dataset,
     if not i%1:
         print (f'Epoch: {i}\n\tLoss: {avg_loss}')
         print(f"\tAverage distance for the same entries: {avg_same_entry_distance}")
-        print(f"\tAverage distance for different entries: {avg_different_entry_distance}")
-
+        print(f"\tAverage distance for different entries: {avg_different_entry_distance}", flush=True)
+    
+    torch.save(P_sml.state_dict(), "P_sml.pt")
+    torch.save(P_desc.state_dict(), "P_desc.pt")
 
 
 if __name__ == "__main__":
-    P_sml_config = ProjConfig(input_size=384)
+    config = ProjConfig(
+        input_size=384,
+        # kernel_size=384,
+        hidden_size=256,
+        output_size=512,    
+    )
+    P_sml_config = config
     P_sml = Projector(**vars(P_sml_config))
     E_sml = Encoder()
 
-    P_desc_config = ProjConfig(input_size=384)
+
+    P_desc_config = config
     P_desc = Projector(**vars(P_desc_config))
     E_desc = Encoder()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
-
     # dataset = PubChemDataset(path="../chemspace/Dataset/Data/PubChem.csv")
-    dataset = PubChemDataset(path="../chemspace/Dataset/Data/Dataset.gz")
+    # dataset = PubChemDataset(path="../chemspace/Dataset/Data/Dataset.gz")
+    dataset = PubChemDataset(path="../chemspace/Dataset/Data/Dataset.gz", frac=0.02)
+    print(dataset)
     
     split = [int(len(dataset)*0.8)+2, int(len(dataset)*0.1), int(len(dataset)*0.1)]
     print(len(dataset), sum(split))
     train_data, test_data, val_data = torch.utils.data.random_split(dataset, split)
-    print(len(train_data), len(test_data), len(val_data))
+    print(len(train_data), len(test_data), len(val_data), flush=True)
 
     optimizer = optim.Adam(list(P_sml.parameters()) + list(P_desc.parameters()), lr=0.05)
     train(train_data, optimizer=optimizer, E_sml=E_sml, P_sml=P_sml, E_desc=E_desc, P_desc=P_desc)
@@ -219,10 +227,6 @@ if __name__ == "__main__":
     torch.save(P_sml.state_dict(), "P_sml.pt")
     torch.save(P_desc.state_dict(), "P_desc.pt")
 
-    # Saving for later
+    # Saving code for later
     # P_sml.load_state_dict(torch.load("P_sml.pt"))
     # P_desc.load_state_dict(torch.load("P_desc.pt"))
-
-
-
-

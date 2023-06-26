@@ -1,5 +1,6 @@
 import torch
-from torch import nn
+import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 from dataclasses import dataclass
 from typing import Optional
@@ -13,9 +14,6 @@ class ProjConfig:
   kernel_size : int         = 384
   activation_function : str = "relu"
 
-
-import torch.nn as nn
-import torch.nn.functional as F
 
 class SelfAttention(nn.Module):
     def __init__(self, input_dim, output_dim):
@@ -49,17 +47,17 @@ class Projector(nn.Module):
                  hidden_size: int,
                  output_size: int,
                  dropout: float = 0.2,
-                 kernel_size: Optional[int] = 384,
+                 kernel_size: Optional[int] = None,
                  *args,
                  **kwargs):
         super(Projector, self).__init__()
 
-        if kernel_size:
-            self.conv1 = nn.Conv1d(input_size, hidden_size, kernel_size)
-            self.attention = SelfAttention(hidden_size, hidden_size)
-        else:
-            self.attention = SelfAttention(input_size, hidden_size)
-        self.fc1 = nn.Linear(hidden_size, hidden_size)
+        # if kernel_size:
+        #     self.conv1 = nn.Conv1d(input_size, hidden_size, kernel_size)
+        #     # self.attention = SelfAttention(hidden_size, hidden_size)
+        # else:
+        #     self.attention = SelfAttention(input_size, hidden_size)
+        self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.fc3 = nn.Linear(hidden_size, output_size)
         self.relu = nn.ReLU() 
@@ -71,12 +69,11 @@ class Projector(nn.Module):
         # self.init_weights()
 
     def forward(self, x):
-        if self.conv1:
-            x = self.conv1(x)
-            x = x.squeeze(-1)
-            print(f"Conv1d: {x.shape}")
-        x = self.attention(x)
-        print(f"att: {x.shape}")
+        # if self.conv1:
+        #     x = self.conv1(x)
+        #     x = x.squeeze(-1)
+        # x = self.attention(x)
+        # out = self.fc1(x.flatten(1))
         out = self.fc1(x)
         out = self.dropout(self.relu(self.layer_norm1(out)))
         out = self.fc2(out)
@@ -93,7 +90,7 @@ class Projector(nn.Module):
         self.fc2.bias.data.zero_()
         self.fc3.weight.data.uniform_(-initrange, initrange)
         self.fc3.bias.data.zero_()
-        self.attention.init_weights()
+        # self.attention.init_weights()
 
 if __name__ == "__main__":
     config = ProjConfig(
@@ -108,5 +105,4 @@ if __name__ == "__main__":
 
     test = torch.Tensor(2, 512, 384)
     P = Projector(**vars(config))
-    # print(P(test.flatten(start_dim=1)).shape)
     print(P(test).shape)
