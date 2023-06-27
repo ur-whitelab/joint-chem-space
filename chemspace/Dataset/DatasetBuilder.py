@@ -4,6 +4,7 @@ sys.path.append("..")
 import pandas as pd
 import gzip
 import json
+import numpy as np
 from time import sleep
 
 from rdkit.Chem import MolFromSmiles
@@ -226,6 +227,21 @@ class DatasetBuilder:
                 # If there is no CID information or linked record, increase counter for missing CIDs
                 self.no_CID = self.no_CID + 1
                 continue
+
+        return
+
+    def add_s2r_text(self, s2r_path: str = "../chemspace/Dataset/Data/out.csv"):
+        s2r_reader = pd.read_csv(s2r_path, chunksize = 10 ** 6, names=['Name', 'CID', 'Description', 'PaperID'], usecols=['CID'])
+
+        uniques = np.array([], dtype=np.int64)
+
+        for i, df in enumerate(s2r_reader):
+            cids = df.to_numpy(dtype=np.int64)
+            cids = np.unique(cids)
+            new_cids = cids[~np.isin(cids,uniques)]
+            uniques = np.append(uniques, new_cids)
+            if i%5 == 0:
+                print(f"Chunk {i}", end='\r')
 
         return
 
