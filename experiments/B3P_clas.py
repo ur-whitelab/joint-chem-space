@@ -22,15 +22,20 @@ class B3P_classifier(nn.Module):
                  output_size: int = 1):
         super(B3P_classifier, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, output_size)
+        self.fc2 = nn.Linear(hidden_size, hidden_size//2)
+        self.fc3 = nn.Linear(hidden_size//2, hidden_size//4)
+        self.fc4 = nn.Linear(hidden_size//4, hidden_size//8)
+        self.fc5 = nn.Linear(hidden_size//8, output_size)
         self.act = nn.ReLU()
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         x = x.mean(dim=1)
-        x = self.fc1(x)
-        x = self.act(x)
-        x = self.fc2(x)
+        x = self.act(self.fc1(x))
+        x = self.act(self.fc2(x))
+        x = self.act(self.fc3(x))
+        x = self.act(self.fc4(x))
+        x = self.act(self.fc5(x))
         x = self.softmax(x)
         return x
 
@@ -66,6 +71,7 @@ def test_step(model, criterion, batch):
     loss = criterion(y_hat, y)
     return loss.item()
 
+
 def train_step(model, optimizer, criterion, x, y):
     optimizer.zero_grad()
     y_hat = model(x)
@@ -74,14 +80,16 @@ def train_step(model, optimizer, criterion, x, y):
     optimizer.step()
     return loss.item()
 
+
 def train(model, optimizer, criterion, dataloader, num_epochs=100):
     model.train()
     for i in range(1, num_epochs+1):
         losses = []
         for b, batch in enumerate(dataloader):
             print(f"Batch: {b}", end="\r", flush=True)
-            x_emb = P_sml(E_sml(batch["SMILES"]))
-            y = batch['BBB'].to(torch.float32).unsqueeze(1)
+            tokens_sml = E_sml.tokenize(batch["SMILES"]).to(device)
+            x_emb = P_sml(E_sml(tokens_sml)).to(device)
+            y = batch['BBB'].to(torch.float32).unsqueeze(1).to(device)
             loss = train_step(model, optimizer, criterion, x_emb, y)
             losses.append(loss)
         avg_loss = sum(losses) / len(losses)
@@ -89,14 +97,22 @@ def train(model, optimizer, criterion, dataloader, num_epochs=100):
         torch.save(model.state_dict(), "B3P_classifier.pt")
 
 if __name__ == "__main__":
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
     model = B3P_classifier()
+    model.to(device)
+
     E_sml = Encoder()
+    E_sml.model.to(device)
+
     P_sml = Projector(
         input_size=384, 
         hidden_size=256, 
         output_size=512
         ) #-> output [512, 512]
-    P_sml.load_state_dict(torch.load("P_sml.pt"))
+    P_sml.load_state_dict(torch.load("experiments/P_sml.pt"))
+    P_sml.to(device)
     
     E_sml.model.eval()
     P_sml.eval()
@@ -106,8 +122,7 @@ if __name__ == "__main__":
     for param in P_sml.parameters():
       param.requires_grad = False
         
-    BBBP_ds = B3P_dataset(BBBP_df)
-    
+    BBBP_ds = B3P_dataset()
     
     split = [0.8, 0.1, 0.1]
     print(sum(split), len(BBBP_ds))
@@ -121,6 +136,4 @@ if __name__ == "__main__":
     criterion = nn.BCELoss()
 
     train(model, optimizer, criterion, train_dataloader, num_epochs=100)
-
-
 
