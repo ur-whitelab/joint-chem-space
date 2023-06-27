@@ -36,8 +36,16 @@ class B3P_classifier(nn.Module):
 
 
 class B3P_dataset(Dataset):
-    def __init__(self, df):
-        self.data = df
+    def __init__(self):
+        url = "https://raw.githubusercontent.com/theochem/B3DB/main/B3DB/B3DB_classification.tsv"
+
+        BBBP_df = pd.read_csv(url, sep="\t")
+        BBBP_df.replace(to_replace="BBB+", value=1, inplace=True)
+        BBBP_df.replace(to_replace="BBB-", value=0, inplace=True)
+        BBBP_df.rename(columns={"BBB+/BBB-": "BBB"}, inplace=True)
+
+        BBBP_df = BBBP_df[['SMILES', 'BBB']]
+        self.data = BBBP_df.sample(frac=1).reset_index(drop=True)
 
     def __getitem__(self, index):
         sml = self.data["SMILES"][index]
@@ -77,7 +85,7 @@ def train(model, optimizer, criterion, dataloader, num_epochs=100):
             loss = train_step(model, optimizer, criterion, x_emb, y)
             losses.append(loss)
         avg_loss = sum(losses) / len(losses)
-        print(f"Epoch: {i} \n\tLoss: {avg_loss}", flush=True)
+        print(f"Epoch: {i}  \n\tLoss: {avg_loss}", flush=True)
         torch.save(model.state_dict(), "B3P_classifier.pt")
 
 if __name__ == "__main__":
@@ -98,16 +106,6 @@ if __name__ == "__main__":
     for param in P_sml.parameters():
       param.requires_grad = False
         
-
-    url = "https://raw.githubusercontent.com/theochem/B3DB/main/B3DB/B3DB_classification.tsv"
-
-    BBBP_df = pd.read_csv(url, sep="\t")
-    BBBP_df.replace(to_replace="BBB+", value=1, inplace=True)
-    BBBP_df.replace(to_replace="BBB-", value=0, inplace=True)
-    BBBP_df.rename(columns={"BBB+/BBB-": "BBB"}, inplace=True)
-
-    BBBP_df = BBBP_df[['SMILES', 'BBB']]
-    BBBP_df = BBBP_df.sample(frac=0.1).reset_index(drop=True)
     BBBP_ds = B3P_dataset(BBBP_df)
     
     
@@ -125,4 +123,4 @@ if __name__ == "__main__":
     train(model, optimizer, criterion, train_dataloader, num_epochs=100)
 
 
-    
+
