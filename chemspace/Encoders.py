@@ -24,12 +24,16 @@ class Encoder:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
 
-    def __call__(self, x: str) -> torch.Tensor:
-        tokens = self.tokenizer(x, return_tensors="pt", padding='max_length', truncation=True, max_length=512)
+    def tokenize(self, x):
+        return self.tokenizer(x, return_tensors="pt", padding='max_length', truncation=True, max_length=512)
+
+    def __call__(self, tokens: str) -> torch.Tensor:
+        # tokens = self.tokenizer(x, return_tensors="pt", padding='max_length', truncation=True, max_length=512)
         return self.model(**tokens, output_hidden_states=True)[1][-1]
 
 
 if __name__ == "__main__":
-    m = Encoder()
-    test = ["CCO"]
-    print(m(test).shape)
+    pass
+    # m = Encoder()
+    # test = ["CCO"]
+    # print(m(test).shape)
