@@ -231,17 +231,29 @@ class DatasetBuilder:
         return
 
     def add_s2r_text(self, s2r_path: str = "../chemspace/Dataset/Data/out.csv"):
-        s2r_reader = pd.read_csv(s2r_path, chunksize = 10 ** 6, names=['Name', 'CID', 'Description', 'PaperID'], usecols=['CID'])
+        chunksize = 10 ** 6
+        s2r_reader = pd.read_csv(s2r_path, chunksize = chunksize, names=['Name', 'CID', 'Description', 'PaperID'], usecols=['CID', 'Description'],index_col=None)
+
+        concat_df = pd.DataFrame()
 
         uniques = np.array([], dtype=np.int64)
 
         for i, df in enumerate(s2r_reader):
-            cids = df.to_numpy(dtype=np.int64)
-            cids = np.unique(cids)
-            new_cids = cids[~np.isin(cids,uniques)]
-            uniques = np.append(uniques, new_cids)
-            if i%5 == 0:
-                print(f"Chunk {i}", end='\r')
+            print(f"Chunk {i}", end='\r')
+
+            df = df.groupby('CID')
+            df = df.agg('|'.join).reset_index()
+
+            concat_df = pd.concat([concat_df, df], ignore_index=True, axis=0)
+
+            
+            
+
+        concat_df = concat_df.groupby('CID')
+        concat_df = concat_df.agg('|'.join).reset_index()
+
+        print('Saving Data')
+        concat_df.to_csv('../chemspace/Dataset/Data/s2rtext.csv', index=False)
 
         return
 
