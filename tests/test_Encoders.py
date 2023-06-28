@@ -14,7 +14,7 @@ class TestEncoders:
 
         """
         E = cs.Encoder(model_name = "DeepChem/ChemBERTa-77M-MLM")
-        test = ["CCO"]
+        test = E.tokenize(["CCO"])
         assert E(test).shape == torch.Tensor(1, 512, 384).shape
-        batch = ["CCO", "CCO"]
+        batch = E.tokenize(["CCO", "CCO"])
         assert E(batch).shape == torch.Tensor(2, 512, 384).shape
