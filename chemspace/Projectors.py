@@ -52,6 +52,9 @@ class Projector(nn.Module):
                  **kwargs):
         super(Projector, self).__init__()
 
+        # Deprecated code from when we were using a self-attention layer.
+        # will be reimplemented in the future
+        #
         # if kernel_size:
         #     self.conv1 = nn.Conv1d(input_size, hidden_size, kernel_size)
         #     # self.attention = SelfAttention(hidden_size, hidden_size)
@@ -69,6 +72,9 @@ class Projector(nn.Module):
         # self.init_weights()
 
     def forward(self, x):
+        # Deprecated code from when we were using a self-attention layer.
+        # will be reimplemented in the future
+        #
         # if self.conv1:
         #     x = self.conv1(x)
         #     x = x.squeeze(-1)

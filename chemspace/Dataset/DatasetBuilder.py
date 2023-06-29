@@ -5,6 +5,9 @@ import pandas as pd
 import gzip
 import json
 from time import sleep
+
+from rdkit.Chem import MolFromSmiles
+
 from chemspace.pug_utils import get_pug_view_page, regulate_api_requests
 
 class DatasetBuilder:
@@ -85,6 +88,7 @@ class DatasetBuilder:
             i = i + 1
             self.SMILES_df = concat_df
         self.dataset = self.dataset.merge(self.SMILES_df, how = 'inner', left_on='CID', right_on='CID')
+        self.count_atoms_in_compunds()
         return
     
     def _external_CIDs_in_dataset(self, external_CIDs: pd.Index) -> bool:
@@ -98,6 +102,29 @@ class DatasetBuilder:
 
         """
         return self.CIDs.isin(external_CIDs).any()
+
+    def count_atoms_in_compunds(self):
+        """
+        Method to add a column to the dataset containing the number of atoms in each compound
+        """
+        self.dataset['NumAtoms'] = self.dataset['SMILES'].apply(lambda x: self._get_no_atoms(x))
+
+        return
+
+    def _get_no_atoms(self, SMILES):
+        """
+        Get the number of atoms in a compound from its SMILES representation
+        Args:
+            SMILES: string containing SMILES representation for one compound
+        Returns:
+            int: number of atoms in the compound
+            None: if invalid SMILES that can't be converted by rdkit
+        """
+        m = MolFromSmiles(SMILES)
+        if not m:
+            return None
+        else:
+            return m.GetNumAtoms()
 
     def add_pubchem_text(self) -> None:
         """
@@ -234,16 +261,33 @@ class DatasetBuilder:
         Method to perform cleaning operations to the dataset
         As specific methods are added they can be called here so that they can all be run easily
         """
+
+        df_lenth = len(self.dataset)
+
+        if 'AllText' in self.dataset.columns:
         # Remove any rows for compounds that have no descriptions
-        self._remove_missing_descriptions()
+            self._remove_empty_rows_in_column(column='AllText')
+            rows_removed = df_lenth - len(self.dataset)
+            print(f"{rows_removed} compunds with no descriptions removed from dataset")
+            df_lenth = len(self.dataset)
+
+        if 'NumAtoms' in self.dataset.columns:
+            # Remove any rows for compounds that have invalid SMILES
+            self._remove_empty_rows_in_column(column='NumAtoms')
+            rows_removed = df_lenth - len(self.dataset)
+            print(f"{rows_removed} compunds with invalid SMILES removed from dataset")
+
+            df_lenth = len(self.dataset)
 
         return
 
-    def _remove_missing_descriptions(self) -> None:
+    def _remove_empty_rows_in_column(self, column: str = None) -> None:
         """
         Method to remove rows that have no description at all from the dataset
         """
         # Remove rows where the `AllText` value is None 
         # so that training is not negatively impacted by mixed type columns
-        self.dataset.dropna(subset=['AllText'], inplace=True, ignore_index = True)
+        self.dataset.dropna(subset=[column], inplace=True, ignore_index = True)
         return
+
+

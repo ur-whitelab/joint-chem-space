@@ -133,6 +133,18 @@ def test(dataset: Dataset,
     print(f"\tAverage distance for different entries: {avg_different_entry_distance}")
 
 
+def train_step(x_sml, x_desc, P_sml, P_desc, optimizer):
+    optimizer.zero_grad()
+    z_sml = P_sml(x_sml)
+    z_desc = P_desc(x_desc)
+
+    shift = torch.randint(low=1, high=z_sml.shape[0], size=(1,)).item()
+    loss = loss_fxn(z_sml, z_desc, z_desc.roll(shift, 0))
+    loss.backward()
+    optimizer.step()
+    return z_sml, z_desc, loss, shift
+
+
 def train(dataset: Dataset,
           num_epochs: int = 50,
           batch_size: int = 32,
@@ -142,14 +154,6 @@ def train(dataset: Dataset,
           E_desc: Encoder = None,
           P_desc: Projector = None, # Add encoders/projectors as a list? Addapt the loss to receive n encoders/projectors?
           ) -> None:
-  E_sml.model.eval()
-  E_desc.model.eval()
-
-  for param in E_sml.model.parameters():
-    param.requires_grad = False
-  for param in E_desc.model.parameters():
-    param.requires_grad = False
-
   P_sml.train()
   P_desc.train()
   for i in range(1, num_epochs+1):
@@ -159,18 +163,14 @@ def train(dataset: Dataset,
     different_entry_distances = []
     losses = []
     for batch in dataloader:
-        optimizer.zero_grad()
+        x_sml = E_sml.tokenize(batch['sml']).to(device)
+        x_desc = E_desc.tokenize(batch['sml']).to(device)
+        sml_embed = E_sml(x_sml).to(device)
+        desc_embed = E_desc(x_desc).to(device)
 
-        x_sml, x_desc = batch['sml'], batch['desc']
-        z_sml = P_sml(E_sml(x_sml).to(device))
-        z_desc = P_desc(E_desc(x_desc).to(device))
-        shift = torch.randint(low=1, high=batch_size, size=(1,)).item()
+        z_sml, z_desc, loss_val, shift = train_step(sml_embed, desc_embed, P_sml, P_desc, optimizer)
 
-        loss = loss_fxn(z_sml, z_desc, z_desc.roll(shift, 0))
-        loss.backward()
-        optimizer.step()
-
-        losses.append(loss.item())
+        losses.append(loss_val.item())
         same_entry_distance = distance(z_sml, z_desc)
         different_entry_distance = distance(z_sml, z_desc.roll(shift, 0))
         same_entry_distances.append(same_entry_distance.mean().item())
@@ -192,29 +192,38 @@ def train(dataset: Dataset,
 
 
 if __name__ == "__main__":
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
+
     config = ProjConfig(
         input_size=384,
         # kernel_size=384,
         hidden_size=256,
         output_size=512,    
     )
+
     P_sml_config = config
     P_sml = Projector(**vars(P_sml_config))
     E_sml = Encoder()
-
+    P_sml.to(device)
+    E_sml.model.to(device)
+    E_sml.model.eval()
+    for param in E_sml.model.parameters():
+       param.requires_grad = False
 
     P_desc_config = config
     P_desc = Projector(**vars(P_desc_config))
     E_desc = Encoder()
+    P_desc.to(device)
+    E_desc.model.to(device)
+    E_desc.model.eval()
+    for param in E_desc.model.parameters():
+      param.requires_grad = False
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(device)
-    # dataset = PubChemDataset(path="../chemspace/Dataset/Data/PubChem.csv")
-    # dataset = PubChemDataset(path="../chemspace/Dataset/Data/Dataset.gz")
-    dataset = PubChemDataset(path="../chemspace/Dataset/Data/Dataset.gz", frac=0.02)
+    dataset = PubChemDataset(path="../chemspace/Dataset/Data/Dataset.gz")
     print(dataset)
     
-    split = [int(len(dataset)*0.8)+2, int(len(dataset)*0.1), int(len(dataset)*0.1)]
+    split = [0.8, 0.1, 0.1]
     print(len(dataset), sum(split))
     train_data, test_data, val_data = torch.utils.data.random_split(dataset, split)
     print(len(train_data), len(test_data), len(val_data), flush=True)
@@ -226,7 +235,3 @@ if __name__ == "__main__":
 
     torch.save(P_sml.state_dict(), "P_sml.pt")
     torch.save(P_desc.state_dict(), "P_desc.pt")
-
-    # Saving code for later
-    # P_sml.load_state_dict(torch.load("P_sml.pt"))
-    # P_desc.load_state_dict(torch.load("P_desc.pt"))
