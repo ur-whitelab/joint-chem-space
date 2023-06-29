@@ -223,7 +223,7 @@ if __name__ == "__main__":
     dataset = PubChemDataset(path="../chemspace/Dataset/Data/Dataset.gz")
     print(dataset)
     
-    split = [int(len(dataset)*0.8)+2, int(len(dataset)*0.1), int(len(dataset)*0.1)]
+    split = [0.8, 0.1, 0.1]
     print(len(dataset), sum(split))
     train_data, test_data, val_data = torch.utils.data.random_split(dataset, split)
     print(len(train_data), len(test_data), len(val_data), flush=True)
