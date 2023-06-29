@@ -19,7 +19,7 @@ class Encoder:
                  model_name: str = "DeepChem/ChemBERTa-77M-MLM") -> None:
         self.model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModelForMaskedLM.from_pretrained("DeepChem/ChemBERTa-77M-MLM")
+        self.model = AutoModelForMaskedLM.from_pretrained(self.model_name)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
