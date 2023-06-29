@@ -231,6 +231,9 @@ class DatasetBuilder:
         return
 
     def add_s2r_text(self, s2r_path: str = "../chemspace/Dataset/Data/out.csv"):
+        # TODO: change aggregator function to join desciptions 
+        # with a different character to avoid interferring with the molecule name masks
+        
         chunksize = 10 ** 6
         s2r_reader = pd.read_csv(s2r_path, chunksize = chunksize, names=['Name', 'CID', 'Description', 'PaperID'], usecols=['CID', 'Description'],index_col=None)
 
