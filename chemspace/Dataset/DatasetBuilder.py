@@ -4,6 +4,7 @@ sys.path.append("..")
 import pandas as pd
 import gzip
 import json
+import numpy as np
 from time import sleep
 
 from rdkit.Chem import MolFromSmiles
@@ -226,6 +227,36 @@ class DatasetBuilder:
                 # If there is no CID information or linked record, increase counter for missing CIDs
                 self.no_CID = self.no_CID + 1
                 continue
+
+        return
+
+    def add_s2r_text(self, s2r_path: str = "../chemspace/Dataset/Data/out.csv"):
+        # TODO: change aggregator function to join desciptions 
+        # with a different character to avoid interferring with the molecule name masks
+        
+        chunksize = 10 ** 6
+        s2r_reader = pd.read_csv(s2r_path, chunksize = chunksize, names=['Name', 'CID', 'Description', 'PaperID'], usecols=['CID', 'Description'],index_col=None)
+
+        concat_df = pd.DataFrame()
+
+        uniques = np.array([], dtype=np.int64)
+
+        for i, df in enumerate(s2r_reader):
+            print(f"Chunk {i}", end='\r')
+
+            df = df.groupby('CID')
+            df = df.agg('|'.join).reset_index()
+
+            concat_df = pd.concat([concat_df, df], ignore_index=True, axis=0)
+
+            
+            
+
+        concat_df = concat_df.groupby('CID')
+        concat_df = concat_df.agg('|'.join).reset_index()
+
+        print('Saving Data')
+        concat_df.to_csv('../chemspace/Dataset/Data/s2rtext.csv', index=False)
 
         return
 
