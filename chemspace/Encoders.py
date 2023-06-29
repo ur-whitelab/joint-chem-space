@@ -19,18 +19,19 @@ class Encoder:
                  model_name: str = "DeepChem/ChemBERTa-77M-MLM") -> None:
         self.model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModelForMaskedLM.from_pretrained("DeepChem/ChemBERTa-77M-MLM")
+        self.model = AutoModelForMaskedLM.from_pretrained(self.model_name)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
 
-    def __call__(self, x: str) -> torch.Tensor:
-        tokens = self.tokenizer(x, return_tensors="pt", padding='max_length', truncation=True, max_length=512)
+    def tokenize(self, x: str) -> torch.Tensor:
+        return self.tokenizer(x, return_tensors="pt", padding='max_length', truncation=True, max_length=512)
+
+    def __call__(self, tokens: str) -> torch.Tensor:
         return self.model(**tokens, output_hidden_states=True)[1][-1]
 
 
 if __name__ == "__main__":
     m = Encoder()
     test = ["CCO"]
-    print(torch.Tensor(1, 512, 384).shape)
     print(m(test).shape)
