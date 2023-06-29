@@ -72,6 +72,40 @@ class DatasetBuilder:
             i = i + 1
             self.dataset = concat_df
         return
+
+    
+    def add_synonyms(self, synonyms_data_path: str = '../chemspace/Dataset/Data/CID-Synonym-filtered.csv'):
+        concat_df = pd.DataFrame()
+    
+        # Create object to iterate through CSV chunks
+        synonyms_data_reader = pd.read_csv(synonyms_data_path, chunksize=10**6, sep="\t", names=['CID', 'Synonyms', 'Number_of_Synonyms'])
+    
+        # Initialize counter
+        i = 0
+
+        # Iterate through df chunks
+        for df in synonyms_data_reader:
+            # Display progress
+            if i % 5 == 0:
+                print(i)
+
+            # If the lowest CID of the chunk is greater than the largest CID we're interested in, then stop
+            if df['CID'].iloc[0] > self.CIDs.iloc[20]:
+            # if df['CID'].iloc[0] > 20:
+                return
+        
+            # Otherwise, merge the CIDs and Synonyms chunk dataframes, and concat. Store as dataset
+            elif self._external_CIDs_in_dataset(df['CID']):
+                merged_df = self.CIDs.to_frame().merge(df, how='inner', left_on='CID', right_on='CID')
+                concat_df = pd.concat([concat_df, merged_df], axis=0, ignore_index=True)
+        
+            # Advance counter
+            i = i + 1
+        
+        # Assign concatenated DataFrame to dataset
+        self.dataset = concat_df
+        return
+
     
     def _external_CIDs_in_dataset(self, external_CIDs: pd.Index) -> bool:
         """
