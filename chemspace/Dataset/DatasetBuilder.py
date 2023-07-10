@@ -321,4 +321,35 @@ class DatasetBuilder:
         self.dataset.dropna(subset=[column], inplace=True, ignore_index = True)
         return
 
+    def _process_synonyms_file(self, file_path: str = '../chemspace/Dataset/Data/CID-Synonym-filtered.gz') -> pd.DataFrame:
+        """
+        Method to process the CID-Synonym-filtered.gz file
+        """
+        # Create a dictionary to hold the contents of the file
+        content = {
+            "CID": [],
+            "Synonym": []
+        }
+        # Open the file and read the contents into the dictionary
+        with gzip.open(file_path, 'rt') as zipfile:
+            for i, line in enumerate(zipfile):
+                CID, synonym = line.split()[0], " ".join(line.split()[1:])
+                content['CID'].append(int(CID))
+                content['Synonym'].append(synonym)
+        # Convert the dictionary to a dataframe
+        return pd.DataFrame.from_dict(content)
 
+    def add_synonyms(self) -> None:
+        """
+        Method to add synonyms to the dataset
+        """
+
+        df_synonyms = self._process_synonyms_file(file_path='../chemspace/Dataset/Data/CID-Synonym-filtered.gz')
+
+        # Create a new column for synonyms
+        self.dataset['Synonyms'] = None
+
+        # Merge the synonyms dataframe with the dataset
+        self.dataset = self.dataset.merge(df_synonyms, how = 'inner', left_on='CID', right_on='CID')
+
+        return
