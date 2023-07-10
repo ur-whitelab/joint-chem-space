@@ -28,7 +28,7 @@ class SML_Encoder:
         return self.tokenizer(x, return_tensors="pt", padding='max_length', truncation=True, max_length=512)
 
     def __call__(self, tokens: str) -> torch.Tensor:
-        return self.model(**tokens, output_hidden_states=True)[1][-1]
+        return self.model(**tokens, output_hidden_states=True).last_hidden_state[-1]
     
 
 class TXT_Encoder:
@@ -45,12 +45,11 @@ class TXT_Encoder:
         return self.tokenizer(x, return_tensors="pt", padding='max_length', truncation=True, max_length=512)
 
     def __call__(self, tokens: str) -> torch.Tensor:
-        return self.model(**tokens, output_hidden_states=True)[1][-1]
+        return self.model(**tokens, output_hidden_states=True).last_hidden_state[-1]
 
 
 if __name__ == "__main__":
     smiles = SML_Encoder()
     txt = TXT_Encoder()
-    test_sml = smiles.tokenize["CCO"]
     test_txt = txt.tokenize(["To synthesize CCO, we need to do this and that"])
     print(txt(test_txt).shape)
