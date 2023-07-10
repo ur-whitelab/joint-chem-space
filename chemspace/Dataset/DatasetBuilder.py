@@ -321,21 +321,25 @@ class DatasetBuilder:
         self.dataset.dropna(subset=[column], inplace=True, ignore_index = True)
         return
 
+    def _get_synonyms_file(self) -> None:
+        raise NotImplementedError
+
     def _process_synonyms_file(self, file_path: str = '../chemspace/Dataset/Data/CID-Synonym-filtered.gz') -> pd.DataFrame:
         """
-        Method to process the CID-Synonym-filtered.gz file
+        Method to process the CID-Synonym-filtered.gz file.
+        This file should be downloaded from PubChem and is not provided in the repository
         """
         # Create a dictionary to hold the contents of the file
         content = {
             "CID": [],
-            "Synonym": []
+            "Synonyms": []
         }
         # Open the file and read the contents into the dictionary
         with gzip.open(file_path, 'rt') as zipfile:
             for i, line in enumerate(zipfile):
                 CID, synonym = line.split()[0], " ".join(line.split()[1:])
                 content['CID'].append(int(CID))
-                content['Synonym'].append(synonym)
+                content['Synonyms'].append(synonym)
         # Convert the dictionary to a dataframe
         return pd.DataFrame.from_dict(content)
 
@@ -344,12 +348,11 @@ class DatasetBuilder:
         Method to add synonyms to the dataset
         """
 
-        df_synonyms = self._process_synonyms_file(file_path='../chemspace/Dataset/Data/CID-Synonym-filtered.gz')
-
-        # Create a new column for synonyms
-        self.dataset['Synonyms'] = None
+        synonyms_df = self._process_synonyms_file()
+        synonyms_df = synonyms_df.groupby('CID')['Synonyms'].apply('; '.join).reset_index()
+        synonyms_df['Number_of_Synonyms'] = synonyms_df['Synonyms'].apply(lambda x: len(x.split('; ')))
 
         # Merge the synonyms dataframe with the dataset
-        self.dataset = self.dataset.merge(df_synonyms, how = 'inner', left_on='CID', right_on='CID')
+        self.dataset = self.dataset.merge(synonyms_df, how = 'outer', on='CID')
 
         return
