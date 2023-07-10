@@ -36,7 +36,7 @@ class TXT_Encoder:
                  model_name: str = "allenai/scibert_scivocab_cased") -> None:
         self.model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModelForMaskedLM.from_pretrained(self.model_name)
+        self.model = AutoModel.from_pretrained(self.model_name)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
@@ -51,6 +51,6 @@ class TXT_Encoder:
 if __name__ == "__main__":
     smiles = SML_Encoder()
     txt = TXT_Encoder()
-    test_sml = ["CCO"]
-    test_txt = ["To synthesize CCO, we need to do this and that"]
-    print(smiles(test_sml).shape, txt(test_txt).shape)
+    test_sml = smiles.tokenize["CCO"]
+    test_txt = txt.tokenize(["To synthesize CCO, we need to do this and that"])
+    print(txt(test_txt).shape)
