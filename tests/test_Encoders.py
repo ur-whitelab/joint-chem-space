@@ -1,7 +1,7 @@
 import sys
 sys.path.append(".")
 import chemspace as cs
-from transformers import AutoModel
+from transformers import BertForPreTraining
 
 import pytest
 import torch
@@ -26,7 +26,7 @@ class TestEncoders:
         Test that the encoder returns the correct shape.
         Specifically for scibert_scivocab_cased, the output dimension is 768.
         """
-        E = cs.Encoder(model_name="allenai/scibert_scivocab_cased", model_type=AutoModel)
+        E = cs.Encoder(model_name="allenai/scibert_scivocab_cased", model_type=BertForPreTraining)
         batch_size = len(testTXT)
         test = E.tokenize(testTXT)
         assert E(test).shape == torch.Tensor(batch_size, 512, 768).shape

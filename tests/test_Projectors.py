@@ -4,7 +4,7 @@ import chemspace as cs
 
 import pytest
 import torch
-from transformers import AutoModel
+from transformers import BertForPreTraining
 
 
 class TestProjectors:
@@ -33,7 +33,7 @@ class TestProjectors:
             input_size=768, #scibert_scivocab_cased
             output_size=256,
         )
-        E = cs.Encoder(model_name = "allenai/scibert_scivocab_cased", model_type = AutoModel) # output shape: (1, 512, 768) 
+        E = cs.Encoder(model_name = "allenai/scibert_scivocab_cased", model_type = BertForPreTraining) # output shape: (1, 512, 768) 
         P = cs.Projector(**vars(config))
         batch = E.tokenize(testTXT)
         batch_size = len(testTXT)

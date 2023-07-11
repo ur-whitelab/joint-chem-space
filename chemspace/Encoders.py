@@ -5,7 +5,8 @@ from transformers import (AutoConfig,
                           AutoTokenizer, 
                           AutoModelForSeq2SeqLM,
                           AutoModel,
-                          AutoModelForMaskedLM)
+                          AutoModelForMaskedLM,
+                          BertForPreTraining)
 from typing import Any
 
 # model_list = [
@@ -34,6 +35,6 @@ class Encoder:
 
 if __name__ == "__main__":
     smiles = Encoder()
-    txt = Encoder(model_name = "allenai/scibert_scivocab_cased", model_type = AutoModel)
+    txt = Encoder(model_name = "allenai/scibert_scivocab_cased", model_type = BertForPreTraining)
     test_txt = txt.tokenize(["To synthesize CCO, we need to do this and that"])
     print(txt(test_txt).shape)
