@@ -324,7 +324,7 @@ class DatasetBuilder:
     def _get_synonyms_file(self) -> None:
         raise NotImplementedError
 
-    def _process_synonyms_file(self, file_path: str = '../chemspace/Dataset/Data/CID-Synonym-filtered.gz') -> pd.DataFrame:
+    def _process_synonyms_file(self, file_path: str, max_CID: int) -> pd.DataFrame:
         """
         Method to process the CID-Synonym-filtered.gz file.
         This file should be downloaded from PubChem and is not provided in the repository
@@ -340,15 +340,17 @@ class DatasetBuilder:
                 CID, synonym = line.split()[0], " ".join(line.split()[1:])
                 content['CID'].append(int(CID))
                 content['Synonyms'].append(synonym)
+                if (max_CID is not None) and (i > max_CID):
+                    break
         # Convert the dictionary to a dataframe
         return pd.DataFrame.from_dict(content)
 
-    def add_synonyms(self) -> None:
+    def add_synonyms(self, file_path: str = '../chemspace/Dataset/Data/CID-Synonym-filtered.gz', max_CID: int = None) -> None:
         """
         Method to add synonyms to the dataset
         """
 
-        synonyms_df = self._process_synonyms_file()
+        synonyms_df = self._process_synonyms_file(file_path, max_CID)
         synonyms_df = synonyms_df.groupby('CID')['Synonyms'].apply('; '.join).reset_index()
         synonyms_df['Number_of_Synonyms'] = synonyms_df['Synonyms'].apply(lambda x: len(x.split('; ')))
 

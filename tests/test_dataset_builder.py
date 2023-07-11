@@ -9,6 +9,8 @@ import chemspace as cs
 from chemspace.Dataset.DatasetBuilder import DatasetBuilder
 from chemspace.pug_utils import get_pug_view_page
 
+IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
+
 @pytest.fixture
 def pubchem_compund_report_path():
     return os.path.abspath('./chemspace/Dataset/Data/PubChem_compound_list_records.json.gz')
@@ -20,6 +22,10 @@ def CID_CSV_path():
 @pytest.fixture
 def dataset_CSV_path():
     return os.path.abspath('./chemspace/Dataset/Data/Dataset.csv')
+
+@pytest.fixture
+def synonyms_file_path():
+    return os.path.abspath('./chemspace/Dataset/Data/CID-Synonym-filtered.gz')
 
 @pytest.fixture
 def CID_df(CID_CSV_path):
@@ -126,3 +132,16 @@ class TestDatasetBuilder:
         assert (DB.dataset['NumAtoms'].notna()).all()
         assert len(DB.dataset) < orginal_length
         
+
+    @pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Synonyms file is not available in GitHub")
+    def test_add_synonyms(self, CID_df, synonyms_file_path):
+        """
+        Unit test for DatasetBuilder.add_synonyms()
+        """
+        # Create Dataset Builder instance
+        DB = DatasetBuilder(compound_df=CID_df)
+        DB.add_synonyms(synonyms_file_path, 1000)
+
+        # Assert that new column was created and that there are non-null values present
+        assert 'Synonyms' in DB.dataset.columns
+        assert (DB.dataset['Synonyms'].notna()).any()
