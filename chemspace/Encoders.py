@@ -14,12 +14,13 @@ from typing import Any
 #     AutoModel.from_pretrained('allenai/scibert_scivocab_cased'),
 # ]
 
-class SML_Encoder:
+class Encoder:
     def __init__(self,
-                 model_name: str = "DeepChem/ChemBERTa-77M-MLM") -> None:
+                 model_name: str = "DeepChem/ChemBERTa-77M-MLM",
+                 model_type: AutoModel = AutoModelForMaskedLM) -> None:
         self.model_name = model_name
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModelForMaskedLM.from_pretrained(self.model_name)
+        self.model = model_type.from_pretrained(self.model_name)
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(device)
@@ -28,28 +29,11 @@ class SML_Encoder:
         return self.tokenizer(x, return_tensors="pt", padding='max_length', truncation=True, max_length=512)
 
     def __call__(self, tokens: str) -> torch.Tensor:
-        return self.model(**tokens, output_hidden_states=True).last_hidden_state[-1]
+        return self.model(**tokens, output_hidden_states=True).hidden_states[-1]
     
 
-class TXT_Encoder:
-    def __init__(self,
-                 model_name: str = "allenai/scibert_scivocab_cased") -> None:
-        self.model_name = model_name
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModel.from_pretrained(self.model_name)
-
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model.to(device)
-
-    def tokenize(self, x: str) -> torch.Tensor:
-        return self.tokenizer(x, return_tensors="pt", padding='max_length', truncation=True, max_length=512)
-
-    def __call__(self, tokens: str) -> torch.Tensor:
-        return self.model(**tokens, output_hidden_states=True).last_hidden_state[-1]
-
-
 if __name__ == "__main__":
-    smiles = SML_Encoder()
-    txt = TXT_Encoder()
+    smiles = Encoder()
+    txt = Encoder(model_name = "allenai/scibert_scivocab_cased", model_type = AutoModel)
     test_txt = txt.tokenize(["To synthesize CCO, we need to do this and that"])
     print(txt(test_txt).shape)
