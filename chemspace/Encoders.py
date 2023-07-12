@@ -37,4 +37,7 @@ if __name__ == "__main__":
     smiles = Encoder()
     txt = Encoder(model_name = "allenai/scibert_scivocab_cased", model_type = BertForPreTraining)
     test_txt = txt.tokenize(["To synthesize CCO, we need to do this and that"])
-    print(txt(test_txt).shape)
+
+    smls = Encoder(model_name = "DeepChem/ChemBERTa-77M-MLM", model_type = AutoModelForMaskedLM)
+    test_smls = smls.tokenize(["CCO"])
+    print(f"Txt encoder shape: {txt(test_txt).shape}\nSmiles encoder shape: {smls(test_smls).shape}")
