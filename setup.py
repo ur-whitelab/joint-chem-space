@@ -22,7 +22,7 @@ setup(
         'ipykernel',
         'datasets',
         'transformers',
-        'pytorch',
+        'torch',
     ],
     test_suite="tests",
     long_description=long_description,

@@ -3,4 +3,4 @@ pandas
 ipykernel
 datasets
 transformers
-pytorch
+torch
