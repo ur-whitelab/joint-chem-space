@@ -9,3 +9,5 @@ except ImportError:
           `conda env create -f environment.yml`''')
 from .Encoders import Encoder
 from .Projectors import ProjConfig, Projector
+
+from .Dataset/DatasetBuilder import *
