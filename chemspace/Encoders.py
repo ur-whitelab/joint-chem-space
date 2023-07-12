@@ -7,7 +7,7 @@ from transformers import (AutoConfig,
                           AutoModel,
                           AutoModelForMaskedLM,
                           BertForPreTraining)
-from typing import Any
+from typing import Union
 
 # model_list = [
 #     AutoModel.from_pretrained("DeepChem/ChemBERTa-77M-MTR"),
@@ -29,15 +29,19 @@ class Encoder:
     def tokenize(self, x: str) -> torch.Tensor:
         return self.tokenizer(x, return_tensors="pt", padding='max_length', truncation=True, max_length=512)
 
-    def __call__(self, tokens: str) -> torch.Tensor:
+    def __call__(self, tokens: Union[str, list[str], dict]) -> torch.Tensor:
+        if isinstance(tokens, str) or isinstance(tokens, list):
+            tokens = self.tokenize(tokens)
         return self.model(**tokens, output_hidden_states=True).hidden_states[-1]
     
 
 if __name__ == "__main__":
     smiles = Encoder()
     txt = Encoder(model_name = "allenai/scibert_scivocab_cased", model_type = BertForPreTraining)
-    test_txt = txt.tokenize(["To synthesize CCO, we need to do this and that"])
+    test_txt = "To synthesize CCO, we need to do this and that"
 
     smls = Encoder(model_name = "DeepChem/ChemBERTa-77M-MLM", model_type = AutoModelForMaskedLM)
     test_smls = smls.tokenize(["CCO"])
-    print(f"Txt encoder shape: {txt(test_txt).shape}\nSmiles encoder shape: {smls(test_smls).shape}")
+
+    print(f"Smiles encoder shape: {smls(test_smls).shape}")
+    print(f"Txt encoder shape: {txt(test_txt).shape}")
