@@ -4,3 +4,4 @@ ipykernel
 datasets
 transformers
 torch
+rdkit

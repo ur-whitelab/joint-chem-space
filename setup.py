@@ -23,6 +23,7 @@ setup(
         'datasets',
         'transformers',
         'torch',
+        'rdkit',
     ],
     test_suite="tests",
     long_description=long_description,
