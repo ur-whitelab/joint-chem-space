@@ -42,7 +42,7 @@ def pug_view_page_one():
 
 class TestDatasetBuilder:
     
-    @pytest.mark.zipped_files
+    @pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Synonyms file is not available in GitHub")
     @pytest.mark.parametrize('compound_file_path',['pubchem_compund_report_path', 'CID_CSV_path'])
     def test_instantiate_DB_from_file(self, compound_file_path, request):
         """
