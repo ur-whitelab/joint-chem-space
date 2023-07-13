@@ -6,6 +6,7 @@ import gzip
 import json
 import numpy as np
 from time import sleep
+import re
 
 from rdkit.Chem import MolFromSmiles
 
@@ -229,6 +230,30 @@ class DatasetBuilder:
                 continue
 
         return
+
+    def mask_pubchem_text(self):
+
+        self.dataset = self.dataset.apply(lambda x : self._mask_pubchem_text(x), axis=1)
+        return
+
+    def _mask_pubchem_text(self, df):
+        if isinstance(df.AllText,str):
+            # Get Synonyms
+            df.Synonyms
+
+            # Build Regex 
+            syn_list = df.Synonyms.split(";")
+            syn_list = list(map(lambda x: "\S*" + x.strip() + "\S*", syn_list))
+            syn_re = "|".join(map(re.escape,syn_list))
+            syn_re = syn_re.replace("\\\\S\\*","\S*")
+            
+            # Compile Regex
+            syn_re = re.compile(syn_re)
+            
+            # Mask the AllText column
+            df.AllText = syn_re.sub("<|MOLECULE|>", df.AllText)
+        
+        return df
 
     def add_s2r_text(self, s2r_path: str = "../chemspace/Dataset/Data/out.csv"):
         # TODO: change aggregator function to join desciptions 
