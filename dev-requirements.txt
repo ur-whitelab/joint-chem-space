@@ -1,0 +1,4 @@
+openbabel
+rdkit
+requests
+pytest

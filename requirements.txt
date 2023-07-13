@@ -1,10 +1,7 @@
-openbabel
-rdkit
-requests
 numpy
 pandas
-pytest
 ipykernel
 datasets
 transformers
-pytorch
+torch
+rdkit

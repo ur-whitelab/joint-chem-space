@@ -187,8 +187,8 @@ def train(dataset: Dataset,
         print(f"\tAverage distance for the same entries: {avg_same_entry_distance}")
         print(f"\tAverage distance for different entries: {avg_different_entry_distance}", flush=True)
     
-    # torch.save(P_sml.state_dict(), "P_sml.pt")
-    # torch.save(P_desc.state_dict(), "P_desc.pt")
+    torch.save(P_sml.state_dict(), "P_sml.pt")
+    torch.save(P_desc.state_dict(), "P_desc.pt")
 
 
 if __name__ == "__main__":
@@ -233,13 +233,5 @@ if __name__ == "__main__":
 
     test(test_data, E_sml=E_sml, P_sml=P_sml, E_desc=E_desc, P_desc=P_desc)
 
-    # torch.save(P_sml.state_dict(), "P_sml.pt")
-    # torch.save(P_desc.state_dict(), "P_desc.pt")
-
-    # Saving code for later
-    # P_sml.load_state_dict(torch.load("P_sml.pt"))
-    # P_desc.load_state_dict(torch.load("P_desc.pt"))
-
-
-
-
+    torch.save(P_sml.state_dict(), "P_sml.pt")
+    torch.save(P_desc.state_dict(), "P_desc.pt")
